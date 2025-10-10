@@ -1,0 +1,103 @@
+# CodeRabbit Configuration
+# https://docs.coderabbit.ai/configuration/
+
+# Language and AI settings
+language: "en"
+
+# Review settings
+reviews:
+  # Enable auto-review for PRs targeting main branch
+  request_changes: false
+  comment_on_lgtm: false
+  review_status: true
+
+# Target branches for auto-review (explicitly include main)
+targets:
+  - "main"
+
+# Review behavior
+review:
+  # Enable reviews for PRs to main branch
+  enable: true
+
+  # Review all files by default
+  files:
+    - "**/*"
+
+  # Exclude certain files from review if needed
+  exclude:
+    - "package-lock.json"
+    - "dist/**"
+    - "node_modules/**"
+
+# Chat settings
+chat:
+  # Enable chat for discussions
+  enable: true
+
+# Security and performance
+security:
+  # Enable vulnerability scanning
+  enable: true
+
+# Custom rules for this project
+rules:
+  # TypeScript/JavaScript specific rules
+  typescript:
+    # Enforce strict type checking
+    strict: true
+
+  # Security rules
+  security:
+    # Check for common vulnerabilities
+    enable: true
+
+# Code quality thresholds
+quality:
+  # Minimum test coverage (we have 80%+)
+  coverage:
+    minimum: 75
+
+# Custom patterns for review
+patterns:
+  # Look for TODO comments
+  - name: "TODO Comments"
+    pattern: "TODO|FIXME|XXX"
+    message: "Found TODO comment that should be addressed"
+
+  # Look for console.log statements
+  - name: "Console Logs"
+    pattern: "console\.(log|error|warn|info)"
+    message: "Console statement found - consider using logger instead"
+
+# Integration settings
+integrations:
+  # GitHub integration
+  github:
+    # Auto-review settings
+    auto_review:
+      # Enable for main branch
+      enabled: true
+      # Target branches
+      branches:
+        - "main"
+
+# Review style preferences
+style:
+  # Be thorough but not overly pedantic
+  thoroughness: "medium"
+
+  # Focus on important issues
+  focus:
+    - "security"
+    - "performance"
+    - "maintainability"
+    - "testing"
+
+# Custom review guidelines for this project
+guidelines:
+  - "Ensure all new features include tests"
+  - "Follow conventional commit format"
+  - "Update documentation for new features"
+  - "Consider cross-platform compatibility"
+  - "Validate path security for file operations"
