@@ -276,7 +276,7 @@ export class ObsidianAPIClient {
         throw error;
       }
       
-      const results = await response.json();
+      const results = await response.json() as any;
       logger.info({ query, resultCount: results.length }, 'Search completed via API');
       return results;
     });

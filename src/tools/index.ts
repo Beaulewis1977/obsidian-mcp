@@ -1,6 +1,5 @@
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import type { TextContent } from '@modelcontextprotocol/sdk/types.js';
 import { RateLimitManager } from '../utils/rate-limiter.js';
 import { 
   ReadNoteSchema,

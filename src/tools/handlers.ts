@@ -1,11 +1,10 @@
 
-import dayjs from 'dayjs';
 import { ObsidianAPIClient } from '../obsidian/api-client.js';
 import { readNote, listNotes, searchNotes, noteExists } from '../filesystem/vault-reader.js';
-import { writeNote, deleteNote as fsDeleteNote, moveNote as fsMoveNote, createFolder as fsCreateFolder } from '../filesystem/vault-writer.js';
-import { openInObsidian as platformOpenInObsidian, openURI } from '../platform/process-spawner.js';
+import { writeNote, deleteNote as fsDeleteNote } from '../filesystem/vault-writer.js';
+import { openInObsidian as platformOpenInObsidian } from '../platform/process-spawner.js';
 import { validatePath, ensureMarkdownExtension } from '../utils/validators.js';
-import { createErrorResponse, formatBytes } from '../utils/errors.js';
+import { createErrorResponse } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import type {
   ServerConfig,
@@ -13,21 +12,13 @@ import type {
   ToolResponse,
   Note
 } from '../types/index.js';
-import type { TextContent } from '@modelcontextprotocol/sdk/types.js';
 import type {
   ReadNoteInput,
   CreateNoteInput,
   EditNoteInput,
   DeleteNoteInput,
   ListNotesInput,
-  SearchNotesInput,
-  MoveNoteInput,
-  UpdateFrontmatterInput,
-  GetDailyNoteInput,
-  OpenInObsidianInput,
-  GetBacklinksInput,
-  CreateFolderInput,
-  GetVaultStatsInput
+  SearchNotesInput
 } from './schemas.js';
 import { getDefaultVault, getVaultByName } from '../config/index.js';
 

@@ -4,7 +4,7 @@ import path from 'path';
 import os from 'os';
 import dotenv from 'dotenv';
 import { logger } from '../utils/logger.js';
-import type { ServerConfig, VaultConfig } from '../types/index.js';
+import type { ServerConfig, VaultConfig, RateLimitConfig, FileWatchingConfig } from '../types/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -109,15 +109,15 @@ export async function loadConfig(): Promise<ServerConfig> {
         rate_limiting: {
           ...DEFAULT_CONFIG.rate_limiting,
           ...config.rate_limiting
-        },
+        } as RateLimitConfig,
         file_watching: {
           ...DEFAULT_CONFIG.file_watching,
           ...config.file_watching
-        },
+        } as FileWatchingConfig,
         limits: {
           ...DEFAULT_CONFIG.limits,
           ...config.limits
-        },
+        } as { max_file_size: number; warning_threshold: number; },
         features: {
           ...DEFAULT_CONFIG.features,
           ...config.features

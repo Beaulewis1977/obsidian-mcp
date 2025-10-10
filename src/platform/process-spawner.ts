@@ -59,7 +59,7 @@ async function findObsidianExecutable(): Promise<string | null> {
   for (const candidate of candidates) {
     try {
       if (isWSL && candidate.startsWith('/mnt/c/')) {
-        const { stdout } = await execa('test', ['-f', candidate], { shell: true });
+        await execa('test', ['-f', candidate], { shell: true });
         return candidate;
       } else {
         const { stdout } = await execa('which', [candidate]);

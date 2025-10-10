@@ -6,7 +6,6 @@ import { validatePath, ensureMarkdownExtension } from '../utils/validators.js';
 import { createErrorResponse } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import type { ServerConfig, VaultConfig, ToolResponse, Note } from '../types/index.js';
-import type { TextContent } from '@modelcontextprotocol/sdk/types.js';
 import type {
   MoveNoteInput,
   UpdateFrontmatterInput,
@@ -224,7 +223,7 @@ export async function handleGetDailyNote(
         content: [{
           type: 'text',
           text: JSON.stringify({
-            path: notePath,
+            notePath: notePath,
             created: false,
             ...note
           }, null, 2)

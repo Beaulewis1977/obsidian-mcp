@@ -11,11 +11,11 @@ export function createVaultWatcher(
   vaultPath: string,
   config: FileWatchingConfig,
   onChange?: (path: string, event: string) => void
-): chokidar.FSWatcher {
+) {
   // Detect if watching Windows filesystem from WSL
   const isWatchingWindowsFS = isWSL && vaultPath.startsWith('/mnt/');
   
-  const options: chokidar.WatchOptions = {
+  const options = {
     ignored: /(^|[\/\\])\../, // Ignore dotfiles
     persistent: true,
     ignoreInitial: true,

@@ -1,7 +1,7 @@
 import { RateLimiterMemory, RateLimiterRedis } from 'rate-limiter-flexible';
 import { logger } from './logger.js';
 import { createErrorResponse } from './errors.js';
-import type { RateLimitConfig, OperationType, ToolResponse, ToolInfo } from '../types/index.js';
+import type { RateLimitConfig, ToolResponse, ToolInfo } from '../types/index.js';
 
 /**
  * Tool operation type classification
@@ -32,7 +32,6 @@ export class RateLimitManager {
   private readLimiter: RateLimiterMemory | RateLimiterRedis;
   private writeLimiter: RateLimiterMemory | RateLimiterRedis;
   private toolLimiters: Map<string, RateLimiterMemory | RateLimiterRedis> = new Map();
-  private requestQueue: Map<string, Array<{ resolve: Function; reject: Function; timeout: NodeJS.Timeout }>> = new Map();
 
   constructor(config: RateLimitConfig) {
     this.config = config;
@@ -135,7 +134,7 @@ export class RateLimitManager {
     // Check global limits
     try {
       await this.globalLimiter.consume(`global${keySuffix}`);
-    } catch (rejRes) {
+    } catch (rejRes: any) {
       if (rejRes.msBeforeNext) {
         const waitTime = Math.ceil(rejRes.msBeforeNext / 1000);
         return {
@@ -155,7 +154,7 @@ export class RateLimitManager {
     const operationLimiter = classification.operationType === 'read' ? this.readLimiter : this.writeLimiter;
     try {
       await operationLimiter.consume(`${classification.operationType}${keySuffix}`);
-    } catch (rejRes) {
+    } catch (rejRes: any) {
       if (rejRes.msBeforeNext) {
         const waitTime = Math.ceil(rejRes.msBeforeNext / 1000);
         return {
@@ -176,7 +175,7 @@ export class RateLimitManager {
     if (toolLimiter) {
       try {
         await toolLimiter.consume(`${toolName}${keySuffix}`);
-      } catch (rejRes) {
+      } catch (rejRes: any) {
         if (rejRes.msBeforeNext) {
           const waitTime = Math.ceil(rejRes.msBeforeNext / 1000);
           return {
@@ -194,48 +193,6 @@ export class RateLimitManager {
     }
 
     return { allowed: true };
-  }
-
-  /**
-   * Queue a request instead of rejecting it
-   */
-  private async queueRequest(toolName: string, vaultName?: string, waitTime?: number): Promise<{
-    allowed: boolean;
-    waitTime?: number;
-    warning?: string;
-  }> {
-    const queueKey = `${toolName}_${vaultName || 'default'}`;
-    const queue = this.requestQueue.get(queueKey) || [];
-
-    if (queue.length >= this.config.graceful.max_queue_size) {
-      return {
-        allowed: false,
-        waitTime: waitTime || 60,
-        warning: 'Request queue full, please try again later',
-      };
-    }
-
-    return new Promise((resolve) => {
-      const timeout = setTimeout(() => {
-        queue.splice(queue.findIndex(item => item.timeout === timeout), 1);
-        resolve({
-          allowed: false,
-          waitTime: 60,
-          warning: 'Request timed out in queue',
-        });
-      }, this.config.graceful.queue_timeout_ms);
-
-      queue.push({ resolve, reject: () => {}, timeout });
-
-      // Process queue when rate limit resets
-      setTimeout(() => {
-        const next = queue.shift();
-        if (next) {
-          clearTimeout(next.timeout);
-          next.resolve({ allowed: true });
-        }
-      }, waitTime ? waitTime * 1000 : 1000);
-    });
   }
 
   /**
@@ -261,7 +218,7 @@ export class RateLimitManager {
       global: await this.getLimiterStatus(this.globalLimiter, `global${keySuffix}`),
       read: await this.getLimiterStatus(this.readLimiter, `read${keySuffix}`),
       write: await this.getLimiterStatus(this.writeLimiter, `write${keySuffix}`),
-      tools: {},
+      tools: {} as Record<string, { current: number; limit: number }>,
     };
 
     // Get tool-specific statuses
