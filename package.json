@@ -1,0 +1,59 @@
+{
+  "name": "obsidian-mcp-server",
+  "version": "1.0.0",
+  "description": "A Model Context Protocol (MCP) server for interacting with Obsidian vaults",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "obsidian-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "lint": "tsc --noEmit",
+    "prepare": "husky",
+    "precommit": "npm run lint && npm test -- --run"
+  },
+  "keywords": [
+    "mcp",
+    "obsidian",
+    "model-context-protocol",
+    "notes",
+    "knowledge-management"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "chokidar": "^4.0.0",
+    "dayjs": "^1.11.10",
+    "dotenv": "^16.4.5",
+    "execa": "^8.0.1",
+    "gray-matter": "^4.0.3",
+    "is-wsl": "^3.1.0",
+    "node-fetch": "^3.3.2",
+    "pino": "^9.0.0",
+    "rate-limiter-flexible": "^5.0.3",
+    "remark": "^15.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-wiki-link": "^2.0.1",
+    "unified": "^11.0.4",
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@vitest/ui": "^2.0.0",
+    "husky": "^9.1.7",
+    "pino-pretty": "^11.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.3",
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

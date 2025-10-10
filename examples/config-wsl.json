@@ -1,0 +1,55 @@
+
+{
+  "version": "1.0",
+  "vaults": [
+    {
+      "name": "Recipe",
+      "path": "/mnt/d/obsidian/Obsidian/Recipe",
+      "default": true,
+      "obsidian_api": {
+        "enabled": true,
+        "url": "https://127.0.0.1:27124",
+        "api_key": "${OBSIDIAN_API_KEY}",
+        "verify_ssl": false,
+        "timeout": 5000,
+        "retry": {
+          "enabled": true,
+          "max_retries": 2,
+          "initial_delay": 1000,
+          "max_delay": 10000
+        },
+        "fallback_to_filesystem": true
+      },
+      "daily_notes": {
+        "folder": "daily",
+        "date_format": "YYYY-MM-DD",
+        "template": null
+      }
+    }
+  ],
+  "rate_limiting": {
+    "enabled": true,
+    "api": {
+      "requests_per_minute": 100
+    },
+    "filesystem": {
+      "operations_per_minute": 500
+    }
+  },
+  "file_watching": {
+    "enabled": true,
+    "polling": {
+      "interval": 1000,
+      "binary_interval": 2000
+    },
+    "stability_threshold": 2000
+  },
+  "limits": {
+    "max_file_size": 10485760,
+    "warning_threshold": 1048576
+  },
+  "features": {
+    "backup_on_delete": false,
+    "advisory_locking": false
+  }
+}

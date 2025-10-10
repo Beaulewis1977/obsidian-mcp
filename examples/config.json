@@ -1,0 +1,21 @@
+
+{
+  "version": "1.0",
+  "vaults": [
+    {
+      "name": "Recipe",
+      "path": "D:\\obsidian\\Obsidian\\Recipe",
+      "default": true,
+      "obsidian_api": {
+        "enabled": true,
+        "url": "https://127.0.0.1:27124",
+        "api_key": "${OBSIDIAN_API_KEY}",
+        "verify_ssl": false
+      },
+      "daily_notes": {
+        "folder": "daily",
+        "date_format": "YYYY-MM-DD"
+      }
+    }
+  ]
+}

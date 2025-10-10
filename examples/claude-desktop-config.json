@@ -1,0 +1,13 @@
+
+{
+  "mcpServers": {
+    "obsidian": {
+      "command": "node",
+      "args": ["D:\\path\\to\\obsidian-mcp-server\\dist\\index.js"],
+      "env": {
+        "OBSIDIAN_API_KEY": "80ddb28a16d171dd45ae2d5a1addff596044f3119d601b1b178b8c085f412fa9",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}

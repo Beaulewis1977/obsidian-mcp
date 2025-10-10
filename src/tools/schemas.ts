@@ -1,0 +1,105 @@
+import { z } from 'zod';
+
+/**
+ * Zod schemas for tool input validation
+ */
+
+export const ReadNoteSchema = z.object({
+  path: z.string().min(1).describe('Path to the note relative to vault root (e.g., "folder/note.md")'),
+  vault: z.string().optional().describe('Vault name (optional if only one vault configured)')
+});
+
+export const CreateNoteSchema = z.object({
+  path: z.string().min(1).describe('Path for the new note (e.g., "folder/note.md")'),
+  content: z.string().describe('Main content of the note (markdown)'),
+  frontmatter: z.record(z.any()).optional().describe('YAML frontmatter (optional)'),
+  vault: z.string().optional().describe('Vault name (optional)'),
+  open_in_obsidian: z.boolean().default(false).describe('Open the note in Obsidian after creation')
+});
+
+export const EditNoteSchema = z.object({
+  path: z.string().min(1).describe('Path to the note to edit'),
+  content: z.string().describe('Content to insert or replacement content'),
+  mode: z.enum(['append', 'prepend', 'replace', 'heading']).default('append')
+    .describe('Edit mode: append, prepend, replace, or insert under heading'),
+  heading: z.string().optional().describe('Target heading (when mode=heading)'),
+  vault: z.string().optional().describe('Vault name (optional)')
+});
+
+export const DeleteNoteSchema = z.object({
+  path: z.string().min(1).describe('Path to the note to delete'),
+  vault: z.string().optional().describe('Vault name (optional)'),
+  confirm: z.boolean().describe('Must be true to confirm deletion')
+});
+
+export const ListNotesSchema = z.object({
+  folder: z.string().optional().describe('Folder to list (omit for entire vault)'),
+  vault: z.string().optional().describe('Vault name (optional)'),
+  filter: z.object({
+    tag: z.string().optional().describe('Filter by tag'),
+    modified_since: z.string().optional().describe('ISO date (e.g., "2024-01-01")'),
+    pattern: z.string().optional().describe('Filename pattern (glob)')
+  }).optional().describe('Optional filters'),
+  include_metadata: z.boolean().default(false).describe('Include file metadata')
+});
+
+export const SearchNotesSchema = z.object({
+  query: z.string().min(1).describe('Search query'),
+  vault: z.string().optional().describe('Vault name (optional)'),
+  mode: z.enum(['obsidian', 'filesystem']).default('filesystem')
+    .describe('Search mode: obsidian (API) or filesystem')
+});
+
+export const MoveNoteSchema = z.object({
+  source_path: z.string().min(1).describe('Current path of the note'),
+  target_path: z.string().min(1).describe('New path for the note'),
+  vault: z.string().optional().describe('Vault name (optional)'),
+  update_links: z.boolean().default(false).describe('Update wikilinks (not implemented in MVP)')
+});
+
+export const UpdateFrontmatterSchema = z.object({
+  path: z.string().min(1).describe('Path to the note'),
+  vault: z.string().optional().describe('Vault name (optional)'),
+  updates: z.record(z.any()).describe('Key-value pairs to update in frontmatter'),
+  merge: z.boolean().default(true).describe('Merge (true) or replace (false) frontmatter')
+});
+
+export const GetDailyNoteSchema = z.object({
+  date: z.string().optional().describe('Date in YYYY-MM-DD format (default: today)'),
+  vault: z.string().optional().describe('Vault name (optional)'),
+  create_if_missing: z.boolean().default(true).describe('Create the daily note if it does not exist')
+});
+
+export const OpenInObsidianSchema = z.object({
+  path: z.string().optional().describe('Path to note to open (optional, opens vault if omitted)'),
+  vault: z.string().optional().describe('Vault name (optional)')
+});
+
+export const GetBacklinksSchema = z.object({
+  path: z.string().min(1).describe('Path to the note'),
+  vault: z.string().optional().describe('Vault name (optional)')
+});
+
+export const CreateFolderSchema = z.object({
+  path: z.string().min(1).describe('Path for the new folder'),
+  vault: z.string().optional().describe('Vault name (optional)')
+});
+
+export const GetVaultStatsSchema = z.object({
+  vault: z.string().optional().describe('Vault name (optional)')
+});
+
+// Type exports
+export type ReadNoteInput = z.infer<typeof ReadNoteSchema>;
+export type CreateNoteInput = z.infer<typeof CreateNoteSchema>;
+export type EditNoteInput = z.infer<typeof EditNoteSchema>;
+export type DeleteNoteInput = z.infer<typeof DeleteNoteSchema>;
+export type ListNotesInput = z.infer<typeof ListNotesSchema>;
+export type SearchNotesInput = z.infer<typeof SearchNotesSchema>;
+export type MoveNoteInput = z.infer<typeof MoveNoteSchema>;
+export type UpdateFrontmatterInput = z.infer<typeof UpdateFrontmatterSchema>;
+export type GetDailyNoteInput = z.infer<typeof GetDailyNoteSchema>;
+export type OpenInObsidianInput = z.infer<typeof OpenInObsidianSchema>;
+export type GetBacklinksInput = z.infer<typeof GetBacklinksSchema>;
+export type CreateFolderInput = z.infer<typeof CreateFolderSchema>;
+export type GetVaultStatsInput = z.infer<typeof GetVaultStatsSchema>;
