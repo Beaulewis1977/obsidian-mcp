@@ -11,13 +11,13 @@ reviews:
   comment_on_lgtm: false
   review_status: true
 
-# Target branches for auto-review (review PRs FROM develop branch)
+# Target branches for auto-review (review PRs targeting develop branch)
 targets:
   - "develop"
 
 # Review behavior
 review:
-  # Enable reviews for PRs from develop branch
+  # Enable reviews for PRs to develop branch
   enable: true
 
   # Review all files by default
@@ -76,9 +76,9 @@ integrations:
   github:
     # Auto-review settings
     auto_review:
-      # Enable for develop branch (source of PRs)
+      # Enable for develop branch (target of PRs)
       enabled: true
-      # Source branches (PRs FROM these branches)
+      # Target branches (PRs TO these branches)
       branches:
         - "develop"
 
