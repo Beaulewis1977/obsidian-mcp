@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "vaults": [
+    {
+      "name": "recipes",
+      "path": "<YOUR_VAULT_PATH>",
+      "notes": "Replace <YOUR_VAULT_PATH> with the absolute path to your Obsidian vault",
+      "default": true,
+      "obsidian_api": {
+        "enabled": true,
+        "url": "http://127.0.0.1:27123",
+        "verify_ssl": false,
+        "api_key": "${OBSIDIAN_API_KEY}"
+      }
+    }
+  ]
+}
