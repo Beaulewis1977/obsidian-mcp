@@ -267,8 +267,8 @@ describe('Rate Limiter', () => {
 
       limiterWithQueue['globalLimiter'].consume = mockConsume;
 
-      // The queue implementation is complex, so we'll just verify the method exists
-      expect(typeof limiterWithQueue['queueRequest']).toBe('function');
+      // Queue request functionality has been removed as it was unused
+      // The rate limiter now focuses on simple rejection with proper error responses
     });
   });
 
