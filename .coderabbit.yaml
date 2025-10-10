@@ -6,18 +6,18 @@ language: "en"
 
 # Review settings
 reviews:
-  # Enable auto-review for PRs targeting main branch
+  # Enable auto-review for PRs from develop branch
   request_changes: false
   comment_on_lgtm: false
   review_status: true
 
-# Target branches for auto-review (explicitly include main)
+# Target branches for auto-review (review PRs FROM develop branch)
 targets:
-  - "main"
+  - "develop"
 
 # Review behavior
 review:
-  # Enable reviews for PRs to main branch
+  # Enable reviews for PRs from develop branch
   enable: true
 
   # Review all files by default
@@ -76,11 +76,11 @@ integrations:
   github:
     # Auto-review settings
     auto_review:
-      # Enable for main branch
+      # Enable for develop branch (source of PRs)
       enabled: true
-      # Target branches
+      # Source branches (PRs FROM these branches)
       branches:
-        - "main"
+        - "develop"
 
 # Review style preferences
 style:
