@@ -44,5 +44,6 @@ The current implementation logs structured events with `pino` to **STDOUT** (`sr
 ## Proposed Follow-Up Tasks
 - Implement option (1) by default; adjust tests to account for STDERR output.
 - Add regression test verifying no non-JSON output on STDOUT when `handleToolCall()` executes.
-- Update documentation (`SETUP_GUIDE.md`, new troubleshooting guide) with the permanent behavior.
+- Create a dedicated troubleshooting guide (`guides/logging-troubleshooting.md`, TBD) covering verification steps and client-specific fixes.
+- Update `SETUP_GUIDE.md` once the troubleshooting guide exists.
 - Validate across clients (Claude Desktop, Windsurf, Cursor, Zed) to ensure JSON parse pop-ups disappear.

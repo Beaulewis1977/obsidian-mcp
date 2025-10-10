@@ -2,6 +2,8 @@
 
 This reference collects common PowerShell commands for running the Obsidian MCP server on Windows. Adjust paths if your checkout differs.
 
+> **Note**: Commands assume the repository lives at `D:\dev\obsidian-mcp-2\code_artifacts\obsidian-mcp-server\`. Replace this with your actual installation directory throughout.
+
 ## Environment Preparation
 - **Set required variables (per session)**
   ```powershell
@@ -67,3 +69,4 @@ node /mnt/d/dev/obsidian-mcp-2/code_artifacts/obsidian-mcp-server/start-server.m
 - `start-server.mjs` injects `createRequire` to support bundled dependencies; use it instead of `node dist/index.js` directly.
 - MCP clients expect STDOUT to carry JSON-RPC only; redirect or silence logs whenever running under Claude Desktop, Cursor, Windsurf, or similar.
 - Store API keys securely; do not hard-code them in scripts checked into source control.
+- For long-lived setups, prefer `.env` files kept out of version control or your OS keychain / secrets manager instead of exporting keys manually.

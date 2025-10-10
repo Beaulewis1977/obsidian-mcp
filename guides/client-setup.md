@@ -88,12 +88,14 @@ This guide explains how to connect the Obsidian MCP server to popular MCP client
     NODE_ENV=production LOG_LEVEL=silent \
     node /mnt/d/dev/obsidian-mcp-2/code_artifacts/obsidian-mcp-server/start-server.mjs >/dev/null &
     ```
+    > **Tip**: Remove the trailing `&` for initial runs so you can see startup errors. Add it back once the server starts reliably.
   - Configure the CLI’s MCP server list (usually `~/.config/<client>/mcp.toml` or `.json`) to connect via STDIO.
 
 ## Windows vs WSL Summary
 - **Windows**: Use backslash paths, set env vars via `$env:...`.
 - **WSL/Linux**: Use forward slashes, export vars via `export`.
 - All clients should inject `NODE_ENV`, `LOG_LEVEL`, `CONFIG_PATH`, and `OBSIDIAN_API_KEY` to ensure quiet logging and proper vault selection.
+- If you edit `config.json`, remember to swap `<YOUR_VAULT_PATH>` for your vault and keep `verify_ssl=false` only for the local Obsidian REST API.
 
 ## Next Steps
 - Extend documentation once automated tests validate Windows native, WSL (Windows FS), and WSL (Linux FS) scenarios.

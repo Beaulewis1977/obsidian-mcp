@@ -4,7 +4,10 @@
     {
       "name": "recipes",
       "path": "<YOUR_VAULT_PATH>",
-      "notes": "Replace <YOUR_VAULT_PATH> with the absolute path to your Obsidian vault",
+      "notes": [
+        "Replace <YOUR_VAULT_PATH> with the absolute path to your Obsidian vault",
+        "verify_ssl is false for the local Obsidian REST API on 127.0.0.1; never disable SSL verification for remote endpoints"
+      ],
       "default": true,
       "obsidian_api": {
         "enabled": true,
