@@ -1,401 +1,206 @@
 # Obsidian MCP Server
 
+<div align="center">
+
+**🤖 AI-Powered Obsidian Integration | 🚀 Production Ready | 📚 Knowledge Management**
+
 [![CI](https://github.com/Beaulewis1977/obsidian-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Beaulewis1977/obsidian-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![Test Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen)](https://github.com/Beaulewis1977/obsidian-mcp)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-A production-ready Model Context Protocol (MCP) server that enables AI assistants to interact with Obsidian vaults through a sophisticated dual-access architecture.
+</div>
+
+---
+
+## 👨‍💻 About the Developer
+
+**Designed and built by Beau Lewis**  
+📧 **blewisxx@gmail.com**
+
+> *"I love creating apps that help people be more productive and organized. If this helped you and you'd like to help me continue making these tools, consider a donation!"*
+
+<div align="center">
+  <strong>Support My Work:</strong><br>
+  <a href="https://venmo.com/beauintulsa">@beauintulsa</a> |
+  <a href="https://ko-fi.com/beaulewis">ko-fi.com/beaulewis</a>
+</div>
+
+---
+
+## 🌟 What is Obsidian MCP Server?
+
+A **production-ready Model Context Protocol (MCP) server** that enables AI assistants (Claude, ChatGPT, etc.) to interact with your Obsidian vaults through a sophisticated dual-access architecture.
+
+**Think of it as a bridge** between your AI assistant and your personal knowledge base in Obsidian, allowing AI to read, write, search, and organize your notes seamlessly.
+
+### 🎯 Key Benefits
+
+- **🔍 Smart Search**: AI can find and analyze your notes instantly
+- **✍️ Content Creation**: Generate new notes with proper formatting
+- **🔗 Knowledge Discovery**: Find connections between ideas
+- **📊 Vault Analytics**: Understand your knowledge base structure
+- **🤖 AI Workflow Integration**: Use AI to enhance your PKM system
+
+### 🏗️ Architecture Highlights
+
+- **Dual-Access Model**: Obsidian REST API (primary) + filesystem (fallback)
+- **Cross-Platform**: Windows native and WSL support
+- **Rate Limiting**: Configurable limits with graceful degradation
+- **File Watching**: Real-time vault change detection
+- **Security First**: Path validation, API key protection, error handling
 
 ## ✨ Features
 
-### Core Operations (P0 - Essential)
-- ✅ **Read notes** with frontmatter, content, links, and metadata
-- ✅ **Create notes** with YAML frontmatter and content
-- ✅ **Edit notes** with multiple modes (append, prepend, replace, heading-based)
-- ✅ **Delete notes** with confirmation
+### 🔧 **13 Powerful Tools Available**
 
-### Search & Discovery (P1 - Important)
-- ✅ **List notes** with filtering by folder, tag, date, or pattern
-- ✅ **Search notes** using full-text search (Obsidian API or filesystem)
-- ✅ **Get backlinks** to find all notes linking to a specific note
-- ✅ **Vault statistics** (note count, tags, links, size)
+#### **Core Operations** 📝
+- **`read_note`** - Read notes with full metadata, frontmatter, and content
+- **`create_note`** - Create new notes with YAML frontmatter
+- **`edit_note`** - Modify notes with multiple modes (append, prepend, replace, heading-based)
+- **`delete_note`** - Delete notes with confirmation
 
-### Organization (P1 - Important)
-- ✅ **Move/rename notes** (with link update warnings)
-- ✅ **Update frontmatter** without modifying content
-- ✅ **Create folders** in vault structure
+#### **Search & Discovery** 🔍
+- **`list_notes`** - Browse vault with filtering (folder, tag, date, pattern)
+- **`search_notes`** - Full-text search via Obsidian API or filesystem
+- **`get_backlinks`** - Find all notes linking to a specific note
+- **`get_vault_stats`** - Vault analytics (count, tags, links, size)
 
-### Advanced Features (P1-P2)
-- ✅ **Daily notes** with configurable date formats
-- ✅ **Open in Obsidian** via API or URI protocol
-- ✅ **Dual-access model**: Obsidian REST API (primary) + filesystem (fallback)
-- ✅ **Cross-platform**: Windows native and WSL support
-- ✅ **Smart retry logic** with exponential backoff
-- ✅ **Rate limiting** (configurable)
-- ✅ **Large file handling** with warnings
-- ✅ **File watching** with platform-specific optimizations
-- ✅ **Security**: Path validation, API key protection
+#### **Organization** 📁
+- **`move_note`** - Move/rename notes (with link update warnings)
+- **`update_frontmatter`** - Modify metadata without touching content
+- **`create_folder`** - Create new folders in vault structure
+
+#### **Advanced Features** ⚡
+- **`get_daily_note`** - Daily notes with configurable date formats
+- **`open_in_obsidian`** - Open notes directly in Obsidian app
+
+### 🛡️ **Enterprise-Grade Features**
+
+#### **Security & Reliability**
+- **Path Validation**: Prevents directory traversal attacks
+- **API Key Protection**: Secure credential handling
+- **Error Recovery**: Graceful fallback to filesystem when API fails
+- **Rate Limiting**: Multi-tier limits (global, per-operation, per-tool)
+- **Request Queuing**: Handles traffic spikes gracefully
+
+#### **Performance & Scalability**
+- **File Watching**: Real-time vault change detection
+- **Smart Caching**: Optimized for large vaults
+- **Cross-Platform**: Windows native + WSL support
+- **Connection Pooling**: Efficient API usage
+
+#### **Developer Experience**
+- **TypeScript**: Full type safety throughout
+- **Comprehensive Tests**: 78 tests, 80%+ coverage
+- **CI/CD Pipeline**: Automated quality gates
+- **CodeRabbit Integration**: AI-powered code review
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
 - **Node.js 18+** ([Download](https://nodejs.org/))
 - **Obsidian** with **Local REST API** plugin enabled
 - **API Key** from Obsidian (Settings → Community Plugins → Local REST API)
 
-### Installation
+### Installation & Setup
 
 ```bash
-# Clone or download this repository
-cd obsidian-mcp-server
+# 1. Clone the repository
+git clone https://github.com/Beaulewis1977/obsidian-mcp.git
+cd obsidian-mcp
 
-# Install dependencies
+# 2. Install dependencies
 npm install
 
-# Build the project
+# 3. Configure your vault
+cp .env.example .env
+# Edit .env with your vault path and API key
+
+# 4. Build the project
 npm run build
+
+# 5. Start the server
+npm start
 ```
 
 ### Configuration
 
-1. **Create configuration file** at `~/.obsidian-mcp/config.json`:
+**Option 1: Environment Variables** (Recommended)
+```bash
+# .env file
+OBSIDIAN_VAULT_PATH=/path/to/your/vault
+OBSIDIAN_API_KEY=your-obsidian-api-key
+MCP_PORT=13800
+```
 
+**Option 2: JSON Configuration**
 ```json
+// config.json
 {
-  "version": "1.0",
-  "vaults": [
-    {
-      "name": "Recipe",
-      "path": "D:\\obsidian\\Obsidian\\Recipe",
-      "default": true,
-      "obsidian_api": {
-        "enabled": true,
-        "url": "https://127.0.0.1:27124",
-        "api_key": "${OBSIDIAN_API_KEY}",
-        "verify_ssl": false
-      }
+  "vaults": [{
+    "name": "main",
+    "path": "/path/to/your/vault",
+    "obsidian_api": {
+      "enabled": true,
+      "url": "http://localhost:27124",
+      "api_key": "your-api-key"
     }
-  ]
+  }]
 }
 ```
 
-2. **Set environment variable** in `.env` file:
+### AI Assistant Integration
 
-```bash
-OBSIDIAN_API_KEY=your-api-key-here
-LOG_LEVEL=info
-```
-
-3. **Test the server**:
-
-```bash
-node dist/index.js
-```
-
-You should see:
-```
-[timestamp] INFO: Configuration loaded
-[timestamp] INFO: Obsidian MCP Server started successfully
-```
-
-Press `Ctrl+C` to stop.
-
-### MCP Client Setup
-
-#### Claude Desktop
-
-Edit `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac):
-
+#### **Claude Desktop**
 ```json
 {
   "mcpServers": {
     "obsidian": {
       "command": "node",
-      "args": ["D:\\path\\to\\obsidian-mcp-server\\dist\\index.js"],
-      "env": {
-        "OBSIDIAN_API_KEY": "your-api-key-here",
-        "LOG_LEVEL": "info"
-      }
+      "args": ["/path/to/obsidian-mcp/dist/index.js"]
     }
   }
 }
 ```
 
-**Important:** Use the **absolute path** to `dist/index.js` in your installation directory.
+#### **Other MCP-Compatible Tools**
+The server implements the full MCP protocol and works with any MCP-compatible AI assistant.
 
-Restart Claude Desktop completely.
+## 📚 Documentation
 
-#### Other MCP Clients
-
-This server works with any MCP-compatible client:
-- **Cursor**: Similar configuration in `.cursor/mcp.json`
-- **Windsurf**: Configuration in editor settings
-- **Zed**: Configuration in `~/.config/zed/settings.json`
-
-## 📚 Available Tools
-
-### Core CRUD Operations
-
-| Tool | Description |
-|------|-------------|
-| `read_note` | Read note with frontmatter, content, and links |
-| `create_note` | Create new note with optional frontmatter |
-| `edit_note` | Edit note (append/prepend/replace/heading-based) |
-| `delete_note` | Delete note (requires confirmation) |
-
-### Discovery & Search
-
-| Tool | Description |
-|------|-------------|
-| `list_notes` | List notes with optional filters |
-| `search_notes` | Full-text search across vault |
-| `get_backlinks` | Find all notes linking to a note |
-| `get_vault_stats` | Get vault statistics |
-
-### Organization
-
-| Tool | Description |
-|------|-------------|
-| `move_note` | Move/rename note (⚠️ doesn't update links) |
-| `update_frontmatter` | Update note frontmatter |
-| `create_folder` | Create folder in vault |
-
-### Advanced
-
-| Tool | Description |
-|------|-------------|
-| `get_daily_note` | Get or create daily note |
-| `open_in_obsidian` | Open note/vault in Obsidian |
-
-## 🔧 Configuration
-
-### Vault Configuration
-
-Example with all options:
-
-```json
-{
-  "version": "1.0",
-  "vaults": [
-    {
-      "name": "MyVault",
-      "path": "/path/to/vault",
-      "default": true,
-      "obsidian_api": {
-        "enabled": true,
-        "url": "https://127.0.0.1:27124",
-        "api_key": "${OBSIDIAN_API_KEY}",
-        "verify_ssl": false,
-        "timeout": 5000,
-        "retry": {
-          "enabled": true,
-          "max_retries": 2,
-          "initial_delay": 1000,
-          "max_delay": 10000
-        },
-        "fallback_to_filesystem": true
-      },
-      "daily_notes": {
-        "folder": "daily",
-        "date_format": "YYYY-MM-DD",
-        "template": null
-      }
-    }
-  ],
-  "rate_limiting": {
-    "enabled": true,
-    "api": {
-      "requests_per_minute": 100
-    },
-    "filesystem": {
-      "operations_per_minute": 500
-    }
-  },
-  "file_watching": {
-    "enabled": true,
-    "polling": {
-      "interval": 1000,
-      "binary_interval": 2000
-    },
-    "stability_threshold": 2000
-  },
-  "limits": {
-    "max_file_size": 10485760,
-    "warning_threshold": 1048576
-  }
-}
-```
-
-### Environment Variables
-
-```bash
-# Required
-OBSIDIAN_API_KEY=your-api-key-here
-
-# Optional
-LOG_LEVEL=info                    # debug, info, warn, error
-FILE_WATCHING_ENABLED=true        # Enable file watching
-RATE_LIMITING_ENABLED=true        # Enable rate limiting
-CONFIG_PATH=/custom/config.json   # Custom config path
-```
-
-## 🔒 Security
-
-### Critical Security Features
-
-✅ **API Key Protection**: Stored in environment variables only, never in code  
-✅ **Path Validation**: Prevents directory traversal attacks  
-✅ **SSL Configuration**: Accepts self-signed certs for localhost only  
-✅ **Input Validation**: All inputs validated with Zod schemas  
-✅ **Log Redaction**: Sensitive data automatically redacted  
-
-### ⚠️ Important Notes
-
-- **No Built-in Backups**: This server does NOT maintain backups
-- **Required**: Use Obsidian Sync, Git, or cloud backup
-- **Link Updates**: Moving/renaming notes does NOT auto-update wikilinks
-- **Concurrent Writes**: Avoid simultaneous edits from multiple clients
-
-## 📊 Performance & Limits
-
-### File Size Limits
-- **< 1MB**: Normal performance
-- **1-10MB**: Warning issued, may be slow
-- **> 10MB**: Rejected (likely not a markdown note)
-
-### Rate Limits (Configurable)
-- API operations: **100 requests/minute**
-- Filesystem operations: **500 operations/minute**
-
-### File Watching Performance
-- **Windows Native**: Native events (best performance)
-- **WSL + Linux filesystem**: Native events (best performance)
-- **WSL + Windows filesystem**: Polling mode (1s delay)
-
-## 🌐 Cross-Platform Support
-
-### Windows Native
-```json
-{
-  "path": "C:\\Users\\username\\vault"
-}
-```
-
-### WSL (Linux Filesystem - Recommended)
-```json
-{
-  "path": "/home/username/vault"
-}
-```
-
-### WSL (Windows Filesystem)
-```json
-{
-  "path": "/mnt/c/Users/username/vault"
-}
-```
-
-**Note**: For best performance in WSL, use Linux filesystem (`/home/...`) instead of Windows filesystem (`/mnt/c/...`).
-
-## 🛠️ Development
-
-```bash
-# Install dependencies
-npm install
-
-# Build
-npm run build
-
-# Build and watch
-npm run dev
-
-# Run tests
-npm test
-
-# Type check
-npm run lint
-```
-
-## 📖 Documentation
-
-- **[SETUP.md](./docs/SETUP.md)** - Detailed setup guide
-- **[API_REFERENCE.md](./docs/API_REFERENCE.md)** - Complete API documentation
-- **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - System architecture
-- **[TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)** - Common issues
-- **[DATA_SAFETY.md](./docs/DATA_SAFETY.md)** - Backup recommendations
-
-## ⚠️ Known Limitations
-
-1. **Link Updates**: Moving/renaming notes does NOT automatically update wikilinks
-   - **Solution**: Use Obsidian's "Update internal links" command after moving
-
-2. **Concurrent Writes**: Multiple clients writing to same note may cause conflicts
-   - **Solution**: Avoid simultaneous edits
-
-3. **File Watching (WSL)**: Windows filesystem requires polling with 1-second delay
-   - **Solution**: Use Linux filesystem for better performance
-
-## 🐛 Troubleshooting
-
-### "API unavailable"
-- Check Obsidian is running
-- Verify Local REST API plugin is enabled
-- Check API key is correct
-- Test: `curl -k -H "Authorization: Bearer YOUR_KEY" https://127.0.0.1:27124/vault/`
-
-### "Configuration file not found"
-- Create `~/.obsidian-mcp/config.json`
-- Or set `CONFIG_PATH` environment variable
-- See example configs in `examples/` directory
-
-### "Path validation failed"
-- Use relative paths only (no `..` or absolute paths)
-- Ensure path is within vault boundary
-
-See [TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more solutions.
-
-## 🗺️ Roadmap
-
-### ✅ Phase 1-3 (MVP - Complete)
-- Core CRUD operations
-- Obsidian API integration
-- Cross-platform support
-- Daily notes
-- Search & discovery
-- Rate limiting & security
-
-### 🚧 Phase 4 (Future Enhancements)
-- Template system with Templater integration
-- Graph operations
-- Canvas file support
-- Dataview query integration
-- Advanced caching
-- Performance optimizations
-
-## 📝 License
-
-MIT License - See [LICENSE](./LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-Built with:
-- [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/sdk) - MCP protocol implementation
-- [Obsidian Local REST API](https://github.com/coddingtonbear/obsidian-local-rest-api) - Obsidian integration
-- And many other excellent open-source libraries
+- [📖 **API Reference**](docs/API_REFERENCE.md) - Complete tool documentation
+- [🏗️ **Architecture Guide**](docs/ARCHITECTURE.md) - System design details
+- [🔒 **Security Guide**](docs/DATA_SAFETY.md) - Security considerations
+- [🚀 **Setup Guide**](SETUP_GUIDE.md) - Detailed installation steps
+- [🧪 **Testing Guide**](docs/TESTING_CHECKLIST.md) - Quality assurance
+- [🔧 **Troubleshooting**](docs/TROUBLESHOOTING.md) - Common issues and solutions
 
 ## 🤝 Contributing
 
-Contributions welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-## 📧 Support
+### Development Workflow
+1. **Fork** the repository
+2. **Create** a feature branch from `develop`
+3. **Make** your changes with tests
+4. **Test** thoroughly (`npm run lint && npm run test`)
+5. **Submit** a pull request to `develop`
+6. **CodeRabbit** will review automatically
+7. **Merge** after approval
 
-- **Issues**: [GitHub Issues](https://github.com/your-repo/obsidian-mcp-server/issues)
-- **Documentation**: See `docs/` directory
-- **Examples**: See `examples/` directory
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+Built with ❤️ for the Obsidian and MCP communities.
 
 ---
 
-**Built with ❤️ for the Obsidian and MCP communities**
+<div align="center">
+  <strong>⭐ If this project helps you, please consider starring the repository!</strong>
+</div>

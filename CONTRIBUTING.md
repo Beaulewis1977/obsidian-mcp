@@ -87,11 +87,24 @@ docs: update API reference for new tools
 test: add integration tests for file watching
 ```
 
+## 🤖 AI Agent Development Rules
+
+**⚠️ CRITICAL: Agents must follow strict permission protocols**
+
+See [agents.md](agents.md) for complete AI agent development rules and workflow requirements.
+
+**Key Rules:**
+- 🤖 **NEVER commit without explicit permission**
+- 🤖 **Always ask before any git operation**
+- 🤖 **Follow complete development workflow**
+- 🤖 **Test thoroughly before asking to commit**
+
 ## Pre-commit Hooks
 
 Pre-commit hooks automatically run:
 - ✅ TypeScript type checking (`npm run lint`)
-- ✅ Test suite (`npm test`)
+- ✅ Test suite (`npm run test`)
+- ✅ Build verification (`npm run build`)
 
 If any check fails, the commit will be blocked. Fix the issues and try again.
 
