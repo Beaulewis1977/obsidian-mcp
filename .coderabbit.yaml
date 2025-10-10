@@ -67,7 +67,7 @@ patterns:
 
   # Look for console.log statements
   - name: "Console Logs"
-    pattern: "console\.(log|error|warn|info)"
+    pattern: 'console\.(log|error|warn|info)'
     message: "Console statement found - consider using logger instead"
 
 # Integration settings
