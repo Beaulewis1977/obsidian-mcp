@@ -16,7 +16,7 @@ import type {
   GetVaultStatsInput
 } from './schemas.js';
 import { getDefaultVault, getVaultByName } from '../config/index.js';
-import { ObsidianAPIClient } from '../obsidian/api-client.js';
+import { ObsidianAPIClient, ApiCallMetadata } from '../obsidian/api-client.js';
 
 /**
  * Get vault from input or default
@@ -313,7 +313,9 @@ export async function handleOpenInObsidian(
 ): Promise<ToolResponse> {
   try {
     const vault = getVault(config, input.vault);
-    
+    let apiMetadata: ApiCallMetadata | undefined;
+    let fallbackReason: string | undefined;
+
     if (input.path) {
       const notePath = ensureMarkdownExtension(input.path);
       
@@ -321,19 +323,21 @@ export async function handleOpenInObsidian(
       const apiClient = getAPIClient(vault);
       if (apiClient && await apiClient.checkAvailability()) {
         try {
-          await apiClient.openNote(notePath);
+          apiMetadata = await apiClient.openNote(notePath);
           return {
             content: [{
               type: 'text',
               text: JSON.stringify({
                 success: true,
                 method: 'api',
-                path: notePath
+                path: notePath,
+                api_metadata: apiMetadata
               }, null, 2)
             }]
           };
         } catch (error) {
           logger.warn({ error }, 'API open failed, trying URI protocol');
+          fallbackReason = (error as Error).message;
         }
       }
       
@@ -347,7 +351,9 @@ export async function handleOpenInObsidian(
           text: JSON.stringify({
             success: true,
             method: 'uri',
-            path: notePath
+            path: notePath,
+            fallback_reason: fallbackReason,
+            api_metadata: apiMetadata
           }, null, 2)
         }]
       };

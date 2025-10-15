@@ -4,6 +4,26 @@ import isWSL from 'is-wsl';
 import { logger } from '../utils/logger.js';
 import { pathForObsidian } from './path-converter.js';
 
+function quoteForCmd(value: string): string {
+  const escaped = value.replace(/"/g, '""');
+  return `"${escaped}"`;
+}
+
+function buildCmdStartCommand(executable: string, args: string[]): string {
+  const quotedExecutable = quoteForCmd(executable);
+  const quotedArgs = args.map(arg => quoteForCmd(arg));
+  return ['start', '""', quotedExecutable, ...quotedArgs].join(' ');
+}
+
+async function commandExists(command: string): Promise<boolean> {
+  try {
+    await execa('command', ['-v', command], { shell: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Spawn Obsidian application
  */
@@ -24,17 +44,19 @@ export async function openInObsidian(vaultPath: string, notePath?: string): Prom
     
     if (isWSL) {
       // Launch Windows app from WSL
-      await execa('cmd.exe', ['/c', 'start', '', obsidianPath, ...args], {
+      const command = buildCmdStartCommand(obsidianPath, args);
+      await execa('cmd.exe', ['/c', command], {
         detached: true,
         stdio: 'ignore'
       });
-    } else {
-      // Launch native app
-      await execa(obsidianPath, args, {
-        detached: true,
-        stdio: 'ignore'
-      });
+      return;
     }
+
+    // Launch native app
+    await execa(obsidianPath, args, {
+      detached: true,
+      stdio: 'ignore'
+    });
     
     logger.info({ vaultPath, notePath }, 'Opened Obsidian');
   } catch (error) {
@@ -80,13 +102,25 @@ async function findObsidianExecutable(): Promise<string | null> {
 export async function openURI(uri: string): Promise<void> {
   try {
     if (isWSL) {
-      // Use Windows start command from WSL
-      await execa('cmd.exe', ['/c', 'start', '', uri], {
-        detached: true,
-        stdio: 'ignore'
-      });
+      if (await commandExists('wslview')) {
+        await execa('wslview', [uri], {
+          detached: true,
+          stdio: 'ignore'
+        });
+      } else if (await commandExists('xdg-open')) {
+        await execa('xdg-open', [uri], {
+          detached: true,
+          stdio: 'ignore'
+        });
+      } else {
+        const command = buildCmdStartCommand(uri, []);
+        await execa('cmd.exe', ['/c', command], {
+          detached: true,
+          stdio: 'ignore'
+        });
+      }
     } else if (process.platform === 'win32') {
-      await execa('cmd', ['/c', 'start', '', uri], {
+      await execa('rundll32.exe', ['url.dll,FileProtocolHandler', uri], {
         detached: true,
         stdio: 'ignore'
       });

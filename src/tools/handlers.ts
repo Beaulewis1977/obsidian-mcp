@@ -1,5 +1,5 @@
 
-import { ObsidianAPIClient } from '../obsidian/api-client.js';
+import { ObsidianAPIClient, ApiCallMetadata } from '../obsidian/api-client.js';
 import { readNote, listNotes, searchNotes, noteExists } from '../filesystem/vault-reader.js';
 import { writeNote, deleteNote as fsDeleteNote } from '../filesystem/vault-writer.js';
 import { openInObsidian as platformOpenInObsidian } from '../platform/process-spawner.js';
@@ -129,29 +129,42 @@ export async function handleCreateNote(
     }
     
     const apiClient = getAPIClient(vault);
-    let method = 'filesystem';
+    let method: 'api' | 'filesystem' = 'filesystem';
     let warning: string | undefined;
-    
+    let fallbackReason: string | undefined;
+    let apiMetadata: ApiCallMetadata | undefined;
+    let openMetadata: ApiCallMetadata | undefined;
+
     // Try API first
-    if (apiClient && await apiClient.checkAvailability()) {
+    if (apiClient && await apiClient.checkAvailability(true)) {
+      const fullContent = input.frontmatter
+        ? `---\n${Object.entries(input.frontmatter).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('\n')}\n---\n\n${input.content}`
+        : input.content;
+
       try {
-        const fullContent = input.frontmatter
-          ? `---\n${Object.entries(input.frontmatter).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('\n')}\n---\n\n${input.content}`
-          : input.content;
-        
-        await apiClient.createNote(notePath, fullContent);
+        apiMetadata = await apiClient.createNote(notePath, fullContent);
         method = 'api';
-        
-        // Open in Obsidian if requested
-        if (input.open_in_obsidian) {
-          await apiClient.openNote(notePath);
-        }
       } catch (error: any) {
         logger.warn({ error }, 'API creation failed, falling back to filesystem');
         warning = 'API unavailable, used filesystem. Cache may be out of sync.';
+        fallbackReason = error?.message;
+      }
+
+      if (method === 'api' && input.open_in_obsidian) {
+        try {
+          openMetadata = await apiClient.openNote(notePath);
+        } catch (error) {
+          logger.warn({ error }, 'API open failed after create, attempting platform open');
+          fallbackReason = fallbackReason || (error as Error).message;
+          try {
+            await platformOpenInObsidian(vault.path, notePath);
+          } catch (openError) {
+            logger.warn({ error: openError }, 'Failed to open note via platform after API open failure');
+          }
+        }
       }
     }
-    
+
     // Fallback to filesystem
     if (method === 'filesystem') {
       const note: Partial<Note> = {
@@ -174,16 +187,29 @@ export async function handleCreateNote(
         }
       }
     }
-    
+
+    const payload: Record<string, unknown> = {
+      success: true,
+      path: notePath,
+      method
+    };
+    if (apiMetadata) {
+      payload.api_metadata = apiMetadata;
+    }
+    if (openMetadata) {
+      payload.open_note_metadata = openMetadata;
+    }
+    if (warning) {
+      payload.warning = warning;
+    }
+    if (fallbackReason) {
+      payload.fallback_reason = fallbackReason;
+    }
+
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          success: true,
-          path: notePath,
-          method,
-          warning
-        }, null, 2)
+        text: JSON.stringify(payload, null, 2)
       }]
     };
   } catch (error: any) {
@@ -229,36 +255,41 @@ export async function handleEditNote(
     }
     
     const apiClient = getAPIClient(vault);
-    let method = 'filesystem';
-    
+    let method: 'api' | 'filesystem' = 'filesystem';
+    let apiMetadata: ApiCallMetadata | undefined;
+    let fallbackReason: string | undefined;
+    let warning: string | undefined;
+
     // Try API first
     if (apiClient && await apiClient.checkAvailability()) {
       try {
         if (input.mode === 'heading' && input.heading) {
           // Use PATCH for heading-based insertion
-          await apiClient.editNote(notePath, input.content, {
+          apiMetadata = await apiClient.editNote(notePath, input.content, {
             operation: 'insert',
             targetType: 'heading',
             target: input.heading,
             createIfMissing: true
           });
         } else if (input.mode === 'append') {
-          await apiClient.appendNote(notePath, `\n${input.content}`);
+          apiMetadata = await apiClient.appendNote(notePath, `\n${input.content}`);
         } else if (input.mode === 'replace') {
-          await apiClient.createNote(notePath, input.content);
+          apiMetadata = await apiClient.createNote(notePath, input.content);
         } else if (input.mode === 'prepend') {
           // Read, prepend, write
           const note = await readNote(vault.path, notePath);
           const newContent = `${input.content}\n\n${note.content}`;
-          await apiClient.createNote(notePath, newContent);
+          apiMetadata = await apiClient.createNote(notePath, newContent);
         }
-        
+
         method = 'api';
       } catch (error) {
         logger.warn({ error }, 'API edit failed, falling back to filesystem');
+        fallbackReason = (error as Error).message;
+        warning = 'API edit failed, applied change via filesystem. You may need to refresh Obsidian.';
       }
     }
-    
+
     // Fallback to filesystem
     if (method === 'filesystem') {
       const note = await readNote(vault.path, notePath);
@@ -293,16 +324,27 @@ export async function handleEditNote(
       
       await writeNote(vault.path, notePath, note);
     }
-    
+
+    const payload: Record<string, unknown> = {
+      success: true,
+      path: notePath,
+      method,
+      mode: input.mode
+    };
+    if (apiMetadata) {
+      payload.api_metadata = apiMetadata;
+    }
+    if (warning) {
+      payload.warning = warning;
+    }
+    if (fallbackReason) {
+      payload.fallback_reason = fallbackReason;
+    }
+
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          success: true,
-          path: notePath,
-          method,
-          mode: input.mode
-        }, null, 2)
+        text: JSON.stringify(payload, null, 2)
       }]
     };
   } catch (error: any) {
@@ -348,32 +390,43 @@ export async function handleDeleteNote(
     }
     
     const apiClient = getAPIClient(vault);
-    let method = 'filesystem';
-    
+    let method: 'api' | 'filesystem' = 'filesystem';
+    let apiMetadata: ApiCallMetadata | undefined;
+    let fallbackReason: string | undefined;
+
     // Try API first
     if (apiClient && await apiClient.checkAvailability()) {
       try {
-        await apiClient.deleteNote(notePath);
+        apiMetadata = await apiClient.deleteNote(notePath);
         method = 'api';
       } catch (error) {
         logger.warn({ error }, 'API deletion failed, falling back to filesystem');
+        fallbackReason = (error as Error).message;
       }
     }
-    
+
     // Fallback to filesystem
     if (method === 'filesystem') {
       await fsDeleteNote(vault.path, notePath);
     }
-    
+
+    const payload: Record<string, unknown> = {
+      success: true,
+      path: notePath,
+      method,
+      warning: '⚠️ Note deleted. This action cannot be undone unless you have a backup.'
+    };
+    if (apiMetadata) {
+      payload.api_metadata = apiMetadata;
+    }
+    if (fallbackReason) {
+      payload.fallback_reason = fallbackReason;
+    }
+
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          success: true,
-          path: notePath,
-          method,
-          warning: '⚠️ Note deleted. This action cannot be undone unless you have a backup.'
-        }, null, 2)
+        text: JSON.stringify(payload, null, 2)
       }]
     };
   } catch (error: any) {
@@ -473,37 +526,57 @@ export async function handleSearchNotes(
   try {
     const vault = getVault(config, input.vault);
     let results: any[] = [];
-    let method = input.mode;
-    
+    let method: SearchNotesInput['mode'] | 'filesystem' = input.mode;
+    let apiMetadata: ApiCallMetadata<any[]> | undefined;
+    let apiUsed = false;
+    let fallbackReason: string | undefined;
+
     if (input.mode === 'obsidian') {
       const apiClient = getAPIClient(vault);
-      
+
       if (apiClient && await apiClient.checkAvailability()) {
         try {
-          results = await apiClient.search(input.query);
+          const metadata = await apiClient.search(input.query);
+          apiMetadata = {
+            status: metadata.status,
+            durationMs: metadata.durationMs
+          };
+          results = metadata.data ?? [];
+          apiUsed = true;
         } catch (error) {
           logger.warn({ error }, 'API search failed, falling back to filesystem');
           method = 'filesystem';
+          fallbackReason = (error as Error).message;
         }
       } else {
         method = 'filesystem';
+        fallbackReason = 'Obsidian API unavailable';
       }
     }
-    
+
     if (method === 'filesystem') {
       results = await searchNotes(vault.path, input.query);
     }
-    
+
+    const payload: Record<string, unknown> = {
+      results,
+      total: results.length,
+      query: input.query,
+      method,
+      vault: vault.name
+    };
+    if (apiMetadata) {
+      payload.api_metadata = apiMetadata;
+      payload.api_used = apiUsed;
+    }
+    if (fallbackReason && method === 'filesystem' && input.mode === 'obsidian') {
+      payload.fallback_reason = fallbackReason;
+    }
+
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          results,
-          total: results.length,
-          query: input.query,
-          method,
-          vault: vault.name
-        }, null, 2)
+        text: JSON.stringify(payload, null, 2)
       }]
     };
   } catch (error: any) {

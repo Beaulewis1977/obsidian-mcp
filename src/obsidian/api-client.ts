@@ -1,6 +1,7 @@
 
 import fetch from 'node-fetch';
 import https from 'https';
+import { performance } from 'node:perf_hooks';
 import { logger } from '../utils/logger.js';
 import { isRetryableError, isAuthError, isClientError, sleep } from '../utils/errors.js';
 import type { ObsidianAPIConfig, RetryConfig } from '../types/index.js';
@@ -11,6 +12,12 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
   initial_delay: 1000,
   max_delay: 10000
 };
+
+export interface ApiCallMetadata<T = unknown> {
+  status: number;
+  durationMs: number;
+  data?: T;
+}
 
 export class ObsidianAPIClient {
   private config: ObsidianAPIConfig;
@@ -41,21 +48,23 @@ export class ObsidianAPIClient {
   /**
    * Check if API is available
    */
-  async checkAvailability(): Promise<boolean> {
-    if (this.available !== null) {
+  async checkAvailability(force = false): Promise<boolean> {
+    if (!force && this.available !== null) {
       return this.available;
     }
-    
+
     try {
+      const start = performance.now();
       const response = await fetch(`${this.config.url}/`, {
         method: 'GET',
         headers: this.getHeaders(),
         agent: this.httpsAgent,
         signal: AbortSignal.timeout(this.config.timeout!)
       });
-      
+
       this.available = response.ok;
-      logger.info({ available: this.available }, 'API availability checked');
+      const durationMs = Math.round(performance.now() - start);
+      logger.debug({ available: this.available, status: response.status, durationMs }, 'API availability checked');
       return this.available;
     } catch (error) {
       logger.warn({ error: (error as Error).message }, 'API is not available');
@@ -68,20 +77,21 @@ export class ObsidianAPIClient {
    * Execute request with retry logic
    */
   private async executeWithRetry<T>(
+    operationName: string,
     operation: () => Promise<T>
   ): Promise<T> {
     if (!this.retryConfig.enabled) {
       return operation();
     }
-    
+
     let lastError: any;
-    
+
     for (let attempt = 0; attempt <= this.retryConfig.max_retries; attempt++) {
       try {
         return await operation();
       } catch (error: any) {
         lastError = error;
-        
+
         // Don't retry on auth or client errors
         if (isAuthError(error) || isClientError(error)) {
           throw error;
@@ -107,13 +117,14 @@ export class ObsidianAPIClient {
           attempt: attempt + 1,
           maxRetries: this.retryConfig.max_retries,
           delay,
-          error: error.message
+          error: error.message,
+          operation: operationName
         }, 'API call failed, retrying...');
         
         await sleep(delay);
       }
     }
-    
+
     throw lastError;
   }
   
@@ -131,8 +142,9 @@ export class ObsidianAPIClient {
   /**
    * Create or replace note
    */
-  async createNote(path: string, content: string): Promise<void> {
-    return this.executeWithRetry(async () => {
+  async createNote(path: string, content: string): Promise<ApiCallMetadata> {
+    return this.executeWithRetry('createNote', async () => {
+      const start = performance.now();
       const response = await fetch(`${this.config.url}/vault/${encodeURIComponent(path)}`, {
         method: 'PUT',
         headers: this.getHeaders(),
@@ -140,22 +152,29 @@ export class ObsidianAPIClient {
         agent: this.httpsAgent,
         signal: AbortSignal.timeout(this.config.timeout!)
       });
-      
+
       if (!response.ok) {
         const error: any = new Error(`API request failed: ${response.statusText}`);
         error.statusCode = response.status;
         throw error;
       }
-      
-      logger.info({ path }, 'Note created via API');
+
+      const durationMs = Math.round(performance.now() - start);
+      logger.info({ path, status: response.status, durationMs }, 'Note created via API');
+      this.available = true;
+      return {
+        status: response.status,
+        durationMs
+      };
     });
   }
   
   /**
    * Append to note
    */
-  async appendNote(path: string, content: string): Promise<void> {
-    return this.executeWithRetry(async () => {
+  async appendNote(path: string, content: string): Promise<ApiCallMetadata> {
+    return this.executeWithRetry('appendNote', async () => {
+      const start = performance.now();
       const response = await fetch(`${this.config.url}/vault/${encodeURIComponent(path)}`, {
         method: 'POST',
         headers: this.getHeaders(),
@@ -163,14 +182,20 @@ export class ObsidianAPIClient {
         agent: this.httpsAgent,
         signal: AbortSignal.timeout(this.config.timeout!)
       });
-      
+
       if (!response.ok) {
         const error: any = new Error(`API request failed: ${response.statusText}`);
         error.statusCode = response.status;
         throw error;
       }
-      
-      logger.info({ path }, 'Content appended via API');
+
+      const durationMs = Math.round(performance.now() - start);
+      logger.info({ path, status: response.status, durationMs }, 'Content appended via API');
+      this.available = true;
+      return {
+        status: response.status,
+        durationMs
+      };
     });
   }
   
@@ -186,8 +211,9 @@ export class ObsidianAPIClient {
       target?: string;
       createIfMissing?: boolean;
     } = {}
-  ): Promise<void> {
-    return this.executeWithRetry(async () => {
+  ): Promise<ApiCallMetadata> {
+    return this.executeWithRetry('editNote', async () => {
+      const start = performance.now();
       const headers = this.getHeaders({
         'Operation': options.operation || 'insert',
         'Target-Type': options.targetType || 'heading',
@@ -195,7 +221,7 @@ export class ObsidianAPIClient {
         'Create-Target-If-Missing': options.createIfMissing ? 'true' : 'false',
         'Trim-Target-Whitespace': 'true'
       });
-      
+
       const response = await fetch(`${this.config.url}/vault/${encodeURIComponent(path)}`, {
         method: 'PATCH',
         headers,
@@ -209,76 +235,103 @@ export class ObsidianAPIClient {
         error.statusCode = response.status;
         throw error;
       }
-      
-      logger.info({ path, options }, 'Note edited via API');
+
+      const durationMs = Math.round(performance.now() - start);
+      logger.info({ path, options, status: response.status, durationMs }, 'Note edited via API');
+      this.available = true;
+      return {
+        status: response.status,
+        durationMs
+      };
     });
   }
   
   /**
    * Delete note
    */
-  async deleteNote(path: string): Promise<void> {
-    return this.executeWithRetry(async () => {
+  async deleteNote(path: string): Promise<ApiCallMetadata> {
+    return this.executeWithRetry('deleteNote', async () => {
+      const start = performance.now();
       const response = await fetch(`${this.config.url}/vault/${encodeURIComponent(path)}`, {
         method: 'DELETE',
         headers: this.getHeaders(),
         agent: this.httpsAgent,
         signal: AbortSignal.timeout(this.config.timeout!)
       });
-      
+
       if (!response.ok) {
         const error: any = new Error(`API request failed: ${response.statusText}`);
         error.statusCode = response.status;
         throw error;
       }
-      
-      logger.info({ path }, 'Note deleted via API');
+
+      const durationMs = Math.round(performance.now() - start);
+      logger.info({ path, status: response.status, durationMs }, 'Note deleted via API');
+      this.available = true;
+      return {
+        status: response.status,
+        durationMs
+      };
     });
   }
   
   /**
    * Open note in Obsidian
    */
-  async openNote(path: string): Promise<void> {
-    return this.executeWithRetry(async () => {
+  async openNote(path: string): Promise<ApiCallMetadata> {
+    return this.executeWithRetry('openNote', async () => {
+      const start = performance.now();
       const response = await fetch(`${this.config.url}/open/${encodeURIComponent(path)}`, {
         method: 'POST',
         headers: this.getHeaders(),
         agent: this.httpsAgent,
         signal: AbortSignal.timeout(this.config.timeout!)
       });
-      
+
       if (!response.ok) {
         const error: any = new Error(`API request failed: ${response.statusText}`);
         error.statusCode = response.status;
         throw error;
       }
-      
-      logger.info({ path }, 'Note opened via API');
+
+      const durationMs = Math.round(performance.now() - start);
+      logger.info({ path, status: response.status, durationMs }, 'Note opened via API');
+      this.available = true;
+      return {
+        status: response.status,
+        durationMs
+      };
     });
   }
   
   /**
    * Search vault
    */
-  async search(query: string): Promise<any> {
-    return this.executeWithRetry(async () => {
+  async search(query: string): Promise<ApiCallMetadata<any[]>> {
+    return this.executeWithRetry('search', async () => {
+      const start = performance.now();
       const response = await fetch(`${this.config.url}/search/?query=${encodeURIComponent(query)}`, {
         method: 'GET',
         headers: this.getHeaders(),
         agent: this.httpsAgent,
         signal: AbortSignal.timeout(this.config.timeout!)
       });
-      
+
       if (!response.ok) {
         const error: any = new Error(`API request failed: ${response.statusText}`);
         error.statusCode = response.status;
         throw error;
       }
-      
-      const results = await response.json() as any;
-      logger.info({ query, resultCount: results.length }, 'Search completed via API');
-      return results;
+
+      const results = await response.json() as any[];
+      const durationMs = Math.round(performance.now() - start);
+      logger.info({ query, resultCount: results.length, status: response.status, durationMs }, 'Search completed via API');
+      this.available = true;
+      return {
+        status: response.status,
+        durationMs,
+        data: results
+      };
     });
   }
 }
