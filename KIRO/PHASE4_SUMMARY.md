@@ -270,14 +270,30 @@ Phase 4 adds **42+ advanced tools** across 10 categories, transforming the MCP s
 **Effort:** 120-160 hours  
 **Focus:** Make existing 13 tools production-ready
 
+**Key Learnings from Testing:**
+- Path handling needs normalization (`.md` extension inconsistencies)
+- Caching behavior requires documentation and potential invalidation strategy
+- Dual-mode (API/filesystem) adds testing complexity but works well
+- Move operations work correctly but list caching may not reflect changes immediately
+
 ### Step 2: Implement High-Priority Phase 4 Tools
 **Timeline:** 2-3 weeks  
 **Effort:** 52-68 hours  
 **Focus:** Graph operations, templates, advanced search
 
+**Implementation Notes:**
+- Graph operations may need caching for performance with filesystem-only mode
+- Template system should handle path normalization consistently
+- Advanced search needs testing in both API and filesystem modes
+
 ### Step 3: Gather User Feedback
 **Timeline:** 2-4 weeks  
 **Focus:** Understand which additional tools users want most
+
+**Testing Platforms:**
+- ✅ Windows (Kiro) - Tested successfully
+- ✅ Windows (Cursor) - Tested successfully
+- 📋 WSL (Claude Code) - Pending testing
 
 ### Step 4: Implement Additional Tools Based on Demand
 **Timeline:** Variable  
@@ -327,7 +343,58 @@ Phase 4 adds **42+ advanced tools** across 10 categories, transforming the MCP s
 
 ---
 
-**Document Version:** 1.0  
+## 🧪 Testing Status & Insights
+
+### Current Testing Coverage
+
+| Platform | Status | Tools Tested | Results |
+|----------|--------|--------------|---------|
+| Windows (Kiro) | ✅ Complete | All 13 core tools | Working |
+| Windows (Cursor) | ✅ Complete | All 13 core tools | Working |
+| WSL (Claude Code) | 📋 Pending | - | Not yet tested |
+
+### Key Findings
+
+**✅ What's Working Well:**
+- Dual-mode operation (API + filesystem fallback)
+- Clear error messages and warnings
+- Move operations with wikilink warnings
+- Daily note creation with templates
+- Frontmatter updates
+- Search functionality
+
+**⚠️ Areas for Improvement:**
+- Path handling inconsistency (`.md` extension)
+- List caching doesn't immediately reflect moves
+- Need path normalization layer
+- Cache invalidation strategy needed
+
+### Implications for Phase 4
+
+**Graph Operations:**
+- May need caching for performance
+- Path normalization critical for link analysis
+- Test with various vault structures
+
+**Template System:**
+- Must handle path extensions consistently
+- Test in both API and filesystem modes
+- Validate frontmatter handling
+
+**Bulk Operations:**
+- Cache invalidation essential
+- Progress reporting important for UX
+- Dry-run mode critical for safety
+
+**Advanced Search:**
+- Test regex patterns for performance
+- Verify consistency across modes
+- Validate with large vaults
+
+---
+
+**Document Version:** 1.1  
 **Date:** January 2025  
-**Status:** Ready for Review  
-**Recommendation:** Complete Phase 1-3 first, then implement High-Priority MVP (Option B)
+**Status:** Updated with Testing Insights  
+**Recommendation:** Complete Phase 1-3 first, then implement High-Priority MVP (Option B)  
+**Testing Status:** Windows validated, WSL pending
