@@ -29,7 +29,7 @@
 ## Testing Results
 
 ✅ **Server now starts successfully** with output:
-```
+```text
 [INFO] Platform detected
 [INFO] Configuration loaded
 [INFO] Vault watcher initialized

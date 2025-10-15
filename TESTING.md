@@ -34,7 +34,7 @@ cd /mnt/d/dev/obsidian-mcp-2/code_artifacts/obsidian-mcp-server
 npx @modelcontextprotocol/inspector node dist/index.js
 ```
 
-Then open http://localhost:5173 in your browser and you can:
+Then open <http://localhost:5173> in your browser and you can:
 - See all available tools
 - Test each tool with different parameters
 - View responses in real-time
@@ -105,15 +105,15 @@ Based on the documentation, the server provides these tools:
 
 Once in the correct directory with Claude Code, try:
 
-```
+```text
 List all notes in my recipes vault
 ```
 
-```
+```text
 Show me statistics about my vault
 ```
 
-```
+```text
 Search for notes containing "recipe"
 ```
 
@@ -126,7 +126,7 @@ claude mcp list
 ```
 
 Should show:
-```
+```text
 ✓ obsidian-server: Connected
 ```
 

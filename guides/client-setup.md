@@ -59,7 +59,7 @@ The `config.json` supports multiple vaults, allowing you to work seamlessly acro
 - The `${OBSIDIAN_API_KEY}` placeholder gets replaced by the environment variable
 
 **Path Mapping:**
-```
+```text
 Windows:  D:\obsidian\Obsidian\Recipe
 WSL:      /mnt/d/obsidian/Obsidian/Recipe
           └── Same physical files, different path format
@@ -489,7 +489,7 @@ Edit `config.json` and set `"default": true` on the vault you want to use.
 
 1. **API Keys:** Store in environment variables, not in version control
 2. **Use .env files:** For local development, create `.env` in server directory:
-   ```
+   ```bash
    OBSIDIAN_API_KEY=your-key-here
    CONFIG_PATH=/path/to/config.json
    ```
@@ -519,4 +519,4 @@ Edit `config.json` and set `"default": true` on the vault you want to use.
 
 - **Issues:** Report at [GitHub Issues](https://github.com/YOUR_USERNAME/obsidian-mcp-server/issues)
 - **Docs:** See `README.md` and other guides in `guides/` folder
-- **MCP Protocol:** https://modelcontextprotocol.io/
+- **MCP Protocol:** <https://modelcontextprotocol.io/>

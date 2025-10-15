@@ -542,8 +542,12 @@ Phase 4 will be considered complete when:
 
 ---
 
-**Document Version:** 1.1  
-**Date:** January 2025  
-**Status:** Updated with Testing Insights  
-**Next Step:** Review and prioritize which tools to implement  
-**Testing Status:** Windows platforms validated, WSL pending
+### Document Metadata
+
+| Field | Value |
+|-------|-------|
+| Document Version | 1.1 |
+| Date | January 2025 |
+| Status | Updated with Testing Insights |
+| Next Step | Review and prioritize which tools to implement |
+| Testing Status | Windows platforms validated, WSL pending |
