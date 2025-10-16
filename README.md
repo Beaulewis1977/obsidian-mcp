@@ -17,15 +17,16 @@
 
 ## 👨‍💻 About the Developer
 
-**Designed and built by Beau Lewis**  
+**Designed and made by Beau Lewis**  
 📧 **blewisxx@gmail.com**
 
-> *"I love creating apps that help people be more productive and organized. If this helped you and you'd like to help me continue making these tools, consider a donation!"*
+> *"I enjoy creating open‑source projects that help people. If this project was helpful to you and you’d like to help the cause, please do!"*
 
 <div align="center">
   <strong>Support My Work:</strong><br>
-  <a href="https://venmo.com/beauintulsa">@beauintulsa</a> |
-  <a href="https://ko-fi.com/beaulewis">ko-fi.com/beaulewis</a>
+  Venmo: <a href="https://venmo.com/beauintulsa">@beauintulsa</a> |
+  Ko‑fi: <a href="https://ko-fi.com/beaulewis">ko-fi.com/beaulewis</a><br>
+  Repo: <a href="https://github.com/Beaulewis1977/obsidian-mcp">github.com/Beaulewis1977/obsidian-mcp</a>
 </div>
 
 ---
@@ -115,42 +116,86 @@ cd obsidian-mcp
 # 2. Install dependencies
 npm install
 
-# 3. Configure your vault
-cp .env.example .env
-# Edit .env with your vault path and API key
+# 3. Create your configuration file (see below)
+#    Save as %USERPROFILE%/.obsidian-mcp/config.json (Windows)
+#    or ~/.obsidian-mcp/config.json (macOS/Linux)
+#    Alternatively, set CONFIG_PATH to point to your config file.
 
 # 4. Build the project
 npm run build
 
 # 5. Start the server
-npm start
+node dist/index.js
+# Or with a helper that prints guidance if not yet built:
+# node start-server.mjs
 ```
 
 ### Configuration
 
-**Option 1: Environment Variables** (Recommended)
-```bash
-# .env file
-OBSIDIAN_VAULT_PATH=/path/to/your/vault
-OBSIDIAN_API_KEY=your-obsidian-api-key
-MCP_PORT=13800
-```
+This server is configured via a JSON file. Environment variables can supplement settings but do not replace the need to define vaults.
 
-**Option 2: JSON Configuration**
+#### Where the server looks for config
+- `CONFIG_PATH` environment variable (if set)
+- `%USERPROFILE%/.obsidian-mcp/config.json` (Windows) or `~/.obsidian-mcp/config.json`
+- `./config.json` (current working directory)
+- `../config.json` (parent directory)
+
+#### Minimal config example
 ```json
-// config.json
 {
-  "vaults": [{
-    "name": "main",
-    "path": "/path/to/your/vault",
-    "obsidian_api": {
-      "enabled": true,
-      "url": "http://localhost:27124",
-      "api_key": "your-api-key"
+  "version": "1.0",
+  "vaults": [
+    {
+      "name": "main",
+      "path": "/path/to/your/vault",
+      "default": true,
+      "obsidian_api": {
+        "enabled": true,
+        "url": "http://127.0.0.1:27123",
+        "verify_ssl": false,
+        "api_key": "${OBSIDIAN_API_KEY}",
+        "timeout": 5000,
+        "retry": { "enabled": true, "max_retries": 2, "initial_delay": 1000, "max_delay": 10000 },
+        "fallback_to_filesystem": true
+      },
+      "daily_notes": { "folder": "daily", "date_format": "YYYY-MM-DD", "template": null }
     }
-  }]
+  ]
 }
 ```
+
+#### Extended config (rate limiting, file watching, limits, features)
+```json
+{
+  "version": "1.0",
+  "vaults": [ { "name": "main", "path": "/path/to/your/vault", "default": true, "obsidian_api": { "enabled": true, "url": "http://127.0.0.1:27123", "verify_ssl": false, "api_key": "${OBSIDIAN_API_KEY}", "timeout": 5000, "retry": { "enabled": true, "max_retries": 2, "initial_delay": 1000, "max_delay": 10000 }, "fallback_to_filesystem": true }, "daily_notes": { "folder": "daily", "date_format": "YYYY-MM-DD", "template": null } } ],
+  "rate_limiting": {
+    "enabled": true,
+    "limits": {
+      "global": { "requests_per_minute": 1000, "requests_per_hour": 10000 },
+      "read": { "requests_per_minute": 600, "requests_per_hour": 6000 },
+      "write": { "requests_per_minute": 100, "requests_per_hour": 1000 },
+      "tools": {
+        "edit_note": { "requests_per_minute": 30 },
+        "delete_note": { "requests_per_minute": 20 },
+        "move_note": { "requests_per_minute": 25 },
+        "search_notes": { "requests_per_minute": 60 },
+        "get_backlinks": { "requests_per_minute": 100 }
+      }
+    },
+    "graceful": { "warn_at_percentage": 80, "queue_requests": false, "max_queue_size": 100, "queue_timeout_ms": 30000 }
+  },
+  "file_watching": { "enabled": true, "polling": { "interval": 1000, "binary_interval": 2000 }, "stability_threshold": 2000 },
+  "limits": { "max_file_size": 10485760, "warning_threshold": 1048576 },
+  "features": { "backup_on_delete": false, "advisory_locking": false }
+}
+```
+
+#### Useful environment variables
+- `CONFIG_PATH`: Absolute path to your config JSON.
+- `OBSIDIAN_API_KEY`: Used when `obsidian_api.api_key` is set to `${OBSIDIAN_API_KEY}`.
+- `LOG_LEVEL`: One of `trace|debug|info|warn|error|fatal`.
+- `RATE_LIMITING_*`, `FILE_WATCHING_ENABLED`: Optional toggles; see `.env.example`.
 
 ### AI Assistant Integration
 
