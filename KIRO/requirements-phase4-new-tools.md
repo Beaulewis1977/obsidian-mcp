@@ -400,11 +400,29 @@ Output: {
 
 ## Implementation Considerations
 
-### Graph Operations
-- **Complexity:** Medium-High
-- **Dependencies:** None (can use filesystem)
-- **Performance:** Need efficient graph algorithms for large vaults
-- **Libraries:** Consider using graph libraries (e.g., graphology)
+### Testing Insightse
+
+**Path Handling:**
+- Extension handling can be inconsistent (`.md` required for some or others)
+- Normalize paths early in the request pipeline
+
+
+**Caching Behavior:**
+- List operations may not immediately reflect fianges
+- Consider implementing cache invalidation on wions
+- Document caching behavior and refresh mechanisms
+
+**Dual-Mode Complex
+- Filesystem fallback works o testing
+- Each tool needs testines
+- Document which mode is used and why in responses
+
+rations
+- **Complexity:** Medium
+- **Dependencies:** Nosystem)
+- **Performance:** Need efficient graph algo vaults
+- **Libraries:** Consider using graph librarie
+- **Testing:** Graph building may cachingnsiderach; coapproly m-onh filesyster wit be sloweaphology) grs (e.g.,ge larms forrithlefin use ne (ca-High Graph Ope###lesystem mod API and fig in bothity tdds complexwell but aity:**ite operatr chlesystemtionald vs opquires re extension ihen `.md`ocument w- D
 
 ### Canvas Operations
 - **Complexity:** Medium
@@ -417,6 +435,7 @@ Output: {
 - **Dependencies:** None
 - **Performance:** Fast (simple string substitution)
 - **Compatibility:** Keep simple, avoid Templater complexity
+- **Path Handling:** Ensure consistent `.md` extension handling for template application
 
 ### Dataview Integration
 - **Complexity:** High
@@ -429,6 +448,8 @@ Output: {
 - **Dependencies:** None
 - **Performance:** Need progress reporting for large operations
 - **Safety:** Require confirmation, support dry-run
+- **Caching:** Bulk operations may require cache invalidation to ensure list operations reflect changes
+- **Testing:** Test both API and filesystem modes for each bulk operation
 
 ---
 
@@ -466,7 +487,67 @@ Phase 4 will be considered complete when:
 
 ---
 
-**Document Version:** 1.0  
-**Date:** January 2025  
-**Status:** Draft - Pending Review  
-**Next Step:** Review and prioritize which tools to implement
+## Real-World Testing Insights
+
+### Platform Testing Status
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| Windows (Kiro) | ✅ Tested | All core tools working |
+| Windows (Cursor) | ✅ Tested | All core tools working |
+| WSL (Claude Code) | 📋 Pending | Next testing target |
+
+### Key Findings from Testing
+
+**1. Path Handling Inconsistencies**
+- Creating notes works without `.md` extension
+- Reading/moving notes requires `.md` extension
+- **Recommendation:** Implement path normalization layer that handles extension automatically
+
+**2. Caching Behavior**
+- `list_notes` may not immediately reflect `move_note` operations
+- Suggests caching or indexing that isn't invalidated on write
+- **Recommendation:** Implement cache invalidation strategy or document refresh requirements
+
+**3. Dual-Mode Operation**
+- Filesystem fallback works reliably when API unavailable
+- Warning messages clearly indicate which mode was used
+- **Recommendation:** Continue this pattern for Phase 4 tools
+
+**4. Tool Response Quality**
+- Move operation includes helpful warning about wikilinks not updating
+- Error messages are clear and actionable
+- **Recommendation:** Maintain this UX quality for Phase 4 tools
+
+### Testing Recommendations for Phase 4
+
+**For Each New Tool:**
+1. Test with and without `.md` extension in paths
+2. Test in both API mode and filesystem fallback mode
+3. Verify caching behavior doesn't cause stale data
+4. Test with vaults of varying sizes (100, 500, 1000 notes)
+5. Validate error messages are clear and actionable
+6. Test on Windows, WSL Linux FS, and WSL Windows FS
+
+**Performance Testing:**
+- Establish baseline performance with current tools
+- Ensure Phase 4 tools meet or exceed baseline
+- Test graph operations with 1000+ note vaults
+- Monitor memory usage during bulk operations
+
+**Integration Testing:**
+- Test tool combinations (e.g., create from template → add to graph)
+- Verify tools work together without conflicts
+- Test concurrent operations
+
+---
+
+### Document Metadata
+
+| Field | Value |
+|-------|-------|
+| Document Version | 1.1 |
+| Date | January 2025 |
+| Status | Updated with Testing Insights |
+| Next Step | Review and prioritize which tools to implement |
+| Testing Status | Windows platforms validated, WSL pending |

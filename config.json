@@ -2,13 +2,20 @@
   "version": "1.0",
   "vaults": [
     {
-      "name": "recipes",
-      "path": "<YOUR_VAULT_PATH>",
-      "notes": [
-        "Replace <YOUR_VAULT_PATH> with the absolute path to your Obsidian vault",
-        "verify_ssl is false for the local Obsidian REST API on 127.0.0.1; never disable SSL verification for remote endpoints"
-      ],
+      "name": "recipes-windows",
+      "path": "D:\\obsidian\\Obsidian\\Recipe",
       "default": true,
+      "obsidian_api": {
+        "enabled": true,
+        "url": "http://127.0.0.1:27123",
+        "verify_ssl": false,
+        "api_key": "${OBSIDIAN_API_KEY}"
+      }
+    },
+    {
+      "name": "recipes-wsl",
+      "path": "/mnt/d/obsidian/Obsidian/Recipe",
+      "default": false,
       "obsidian_api": {
         "enabled": true,
         "url": "http://127.0.0.1:27123",

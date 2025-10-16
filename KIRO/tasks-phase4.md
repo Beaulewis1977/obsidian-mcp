@@ -78,6 +78,12 @@ This document breaks down Phase 4 advanced tool implementation into discrete, ac
 
 **Epic 11 Total:** 24-32 hours
 
+**Testing Considerations:**
+- Test graph building with both API and filesystem modes
+- Verify caching doesn't cause stale graph data
+- Test with vaults of varying sizes (100, 500, 1000 notes)
+- Validate path handling across different note structures
+
 ---
 
 ### Epic 12: Template System
@@ -133,6 +139,12 @@ This document breaks down Phase 4 advanced tool implementation into discrete, ac
   - _Estimated effort: 3-4 hours_
 
 **Epic 12 Total:** 12-16 hours
+
+**Testing Considerations:**
+- Test path handling with and without `.md` extension
+- Verify template application works in both API and filesystem modes
+- Test variable substitution edge cases
+- Validate frontmatter handling in templates
 
 ---
 
@@ -199,6 +211,12 @@ This document breaks down Phase 4 advanced tool implementation into discrete, ac
   - _Estimated effort: 4-6 hours_
 
 **Epic 13 Total:** 16-20 hours
+
+**Testing Considerations:**
+- Test search with both API and filesystem modes
+- Verify search results are consistent across modes
+- Test with various vault sizes for performance
+- Validate regex patterns don't cause performance issues
 
 ---
 
@@ -295,6 +313,13 @@ This document breaks down Phase 4 advanced tool implementation into discrete, ac
   - _Estimated effort: 4-6 hours_
 
 **Epic 15 Total:** 20-28 hours
+
+**Testing Considerations:**
+- Test cache invalidation after bulk operations
+- Verify list operations reflect bulk changes
+- Test with both API and filesystem modes
+- Validate progress reporting works correctly
+- Test dry-run mode thoroughly before implementing actual operations
 
 ---
 
@@ -498,8 +523,64 @@ New documents:
 
 ---
 
-**Document Version:** 1.0  
+## Real-World Testing Checklist
+
+### Pre-Implementation Testing (Phase 3 Validation)
+
+Before starting Phase 4, validate these findings from production testing:
+
+- [ ] **Path Normalization**
+  - [ ] Implement consistent `.md` extension handling
+  - [ ] Test path handling across all existing tools
+  - [ ] Document when extension is required vs optional
+
+- [ ] **Cache Management**
+  - [ ] Implement cache invalidation on write operations
+  - [ ] Test list operations after move/create/delete
+  - [ ] Document caching behavior for users
+
+- [ ] **Dual-Mode Testing**
+  - [ ] Verify all tools work in API mode
+  - [ ] Verify all tools work in filesystem fallback mode
+  - [ ] Test mode switching behavior
+
+- [ ] **Platform Validation**
+  - [x] Windows (Kiro) - Tested successfully
+  - [x] Windows (Cursor) - Tested successfully
+  - [ ] WSL Linux FS - Pending
+  - [ ] WSL Windows FS - Pending
+
+### Phase 4 Testing Requirements
+
+For each new tool implemented:
+
+- [ ] **Path Handling**
+  - [ ] Test with `.md` extension
+  - [ ] Test without `.md` extension
+  - [ ] Test with nested folders
+  - [ ] Test with special characters
+
+- [ ] **Mode Testing**
+  - [ ] Test in API mode
+  - [ ] Test in filesystem fallback mode
+  - [ ] Verify consistent behavior across modes
+
+- [ ] **Performance Testing**
+  - [ ] Test with 100-note vault
+  - [ ] Test with 500-note vault
+  - [ ] Test with 1000-note vault
+  - [ ] Verify meets performance targets
+
+- [ ] **Integration Testing**
+  - [ ] Test with other Phase 4 tools
+  - [ ] Test with existing core tools
+  - [ ] Test concurrent operations
+
+---
+
+**Document Version:** 1.1  
 **Date:** January 2025  
-**Status:** Ready for Execution  
-**Prerequisites:** Phase 3 complete  
-**Next Step:** Begin Epic 11 (Graph Operations)
+**Status:** Updated with Testing Requirements  
+**Prerequisites:** Phase 3 complete + path/cache fixes  
+**Next Step:** Complete pre-implementation testing, then begin Epic 11  
+**Testing Status:** Windows validated, WSL pending

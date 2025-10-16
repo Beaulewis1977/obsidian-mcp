@@ -12,5 +12,5 @@ export default defineConfig({
   target: 'node18',
   outDir: 'dist',
   external: ['@modelcontextprotocol/sdk'],
-  noExternal: ['chokidar', 'gray-matter', 'remark', 'unified']
+  bundle: true
 });
