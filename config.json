@@ -2,7 +2,7 @@
   "version": "1.0",
   "vaults": [
     {
-      "name": "recipes-windows",
+      "name": "Obsidian",
       "path": "D:\\obsidian\\Obsidian\\Recipe",
       "default": true,
       "obsidian_api": {
@@ -13,7 +13,7 @@
       }
     },
     {
-      "name": "recipes-wsl",
+      "name": "Obsidian-wsl",
       "path": "/mnt/d/obsidian/Obsidian/Recipe",
       "default": false,
       "obsidian_api": {
