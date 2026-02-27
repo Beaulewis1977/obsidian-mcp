@@ -36,18 +36,29 @@ export async function handleGetLinkGraph(
   try {
     const vault = getVault(config, input.vault);
 
-    // If folder is specified, scope the listing — but graph resolution uses full vault nameToPath
-    // (Research Open Question 3: full vault nameToPath is needed for correct cross-folder resolution)
-    const scopedListFn = input.folder
-      ? (vaultPath: string) => listNotes(vaultPath, input.folder)
-      : listNotes;
+    // Always build graph from full vault so nameToPath resolves cross-folder links correctly.
+    // If folder is specified, filter nodes/edges after building the full graph.
+    const graph = await buildVaultGraph(vault.path, listNotes, readNote);
 
-    const graph = await buildVaultGraph(vault.path, scopedListFn, readNote);
-
-    // Compute stats
-    const nodeValues = Array.from(graph.nodes.values());
+    // If folder-scoped, filter to only nodes within the folder
+    let nodeValues: import('./link-graph.js').GraphNode[];
+    let filteredEdges: typeof graph.edges;
+    if (input.folder) {
+      const folderPrefix = input.folder.endsWith('/') ? input.folder : input.folder + '/';
+      const folderPaths = new Set<string>();
+      for (const [p] of graph.nodes) {
+        if (p.startsWith(folderPrefix) || p.startsWith(input.folder + '\\')) {
+          folderPaths.add(p);
+        }
+      }
+      nodeValues = Array.from(graph.nodes.values()).filter(n => folderPaths.has(n.path));
+      filteredEdges = graph.edges.filter(e => folderPaths.has(e.source));
+    } else {
+      nodeValues = Array.from(graph.nodes.values());
+      filteredEdges = graph.edges;
+    }
     const total_nodes = nodeValues.length;
-    const total_edges = graph.edges.length;
+    const total_edges = filteredEdges.length;
     const orphan_count = nodeValues.filter(n => n.incoming.length === 0 && n.outgoing.length === 0).length;
     const avg_connections = total_nodes === 0
       ? 0
@@ -84,7 +95,7 @@ export async function handleGetLinkGraph(
         incoming_count: n.incoming.length,
         tags: n.tags,
       })),
-      edges: graph.edges,
+      edges: filteredEdges,
     };
 
     return {

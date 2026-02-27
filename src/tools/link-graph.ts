@@ -2,6 +2,9 @@ import path from 'path';
 import { logger } from '../utils/logger.js';
 import type { Note } from '../types/index.js';
 
+/** Normalize path separators to forward slashes (Windows backslashes → forward slashes). */
+const normalizePath = (p: string): string => p.replace(/\\/g, '/');
+
 /**
  * A parsed Obsidian wikilink — handles all 5 Obsidian link formats:
  *   [[Note]]
@@ -178,28 +181,30 @@ export async function buildVaultGraph(
   // Step 3: Build basename → path lookup (first/shortest entry wins on collision)
   const nameToPath = new Map<string, string>();
   for (const note of noteList) {
+    const np = normalizePath(note.path);
     // Register by full relative path (with and without .md extension)
-    nameToPath.set(note.path, note.path);
-    const pathWithoutExt = note.path.replace(/\.md$/, '');
-    nameToPath.set(pathWithoutExt, note.path);
+    nameToPath.set(np, np);
+    const pathWithoutExt = np.replace(/\.md$/, '');
+    nameToPath.set(pathWithoutExt, np);
 
     // Register by basename (without extension) — shorter path wins on collision
-    const basename = path.basename(note.path, '.md');
+    const basename = path.basename(np, '.md');
     if (!nameToPath.has(basename)) {
-      nameToPath.set(basename, note.path);
+      nameToPath.set(basename, np);
     }
     // Also register basename with extension
-    const basenameWithExt = path.basename(note.path);
+    const basenameWithExt = path.basename(np);
     if (!nameToPath.has(basenameWithExt)) {
-      nameToPath.set(basenameWithExt, note.path);
+      nameToPath.set(basenameWithExt, np);
     }
   }
 
   // Initialize GraphNode for each note
   const nodes = new Map<string, GraphNode>();
   for (const note of noteList) {
-    nodes.set(note.path, {
-      path: note.path,
+    const np = normalizePath(note.path);
+    nodes.set(np, {
+      path: np,
       name: note.name,
       folder: note.folder,
       outgoing: [],
@@ -219,15 +224,18 @@ export async function buildVaultGraph(
    * Returns null if the target cannot be resolved to a known note.
    */
   function resolveWikilink(target: string): string | null {
+    // Normalize separators so wikilink targets (forward slashes) match filesystem paths
+    const t = normalizePath(target);
+
     // Try with .md extension
-    const withExt = target.endsWith('.md') ? target : target + '.md';
+    const withExt = t.endsWith('.md') ? t : t + '.md';
     if (nameToPath.has(withExt)) return nameToPath.get(withExt)!;
 
     // Try without extension (full path or basename)
-    if (nameToPath.has(target)) return nameToPath.get(target)!;
+    if (nameToPath.has(t)) return nameToPath.get(t)!;
 
     // Try just the basename (strip any folder prefix in the link)
-    const base = path.basename(target, '.md');
+    const base = path.basename(t, '.md');
     if (nameToPath.has(base)) return nameToPath.get(base)!;
 
     return null;
@@ -235,7 +243,8 @@ export async function buildVaultGraph(
 
   // Step 4: First pass — read each note, extract tags and wikilinks
   for (const noteInfo of noteList) {
-    const node = nodes.get(noteInfo.path)!;
+    const notePath = normalizePath(noteInfo.path);
+    const node = nodes.get(notePath)!;
 
     let note: Note;
     try {
@@ -267,13 +276,13 @@ export async function buildVaultGraph(
     const wikilinks = parseWikilinks(note.content);
     for (const link of wikilinks) {
       const resolvedPath = resolveWikilink(link.target);
-      if (resolvedPath && resolvedPath !== noteInfo.path) {
+      if (resolvedPath && resolvedPath !== notePath) {
         // Only add to outgoing once (deduplicate)
         if (!node.outgoing.includes(resolvedPath)) {
           node.outgoing.push(resolvedPath);
         }
         edges.push({
-          source: noteInfo.path,
+          source: notePath,
           target: resolvedPath,
           type: link.isEmbed ? 'embed' : 'wikilink',
         });

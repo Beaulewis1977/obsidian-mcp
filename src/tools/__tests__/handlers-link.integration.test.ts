@@ -155,6 +155,31 @@ describe('handleGetLinkGraph', () => {
     expect(typeof nodeA.outgoing_count).toBe('number');
     expect(typeof nodeA.incoming_count).toBe('number');
   });
+
+  it('should scope nodes to folder but resolve cross-folder links', async () => {
+    setupMockVault();
+
+    const result = await handleGetLinkGraph(mockConfig, { folder: 'folder' });
+
+    expect(result.isError).toBeUndefined();
+    const data = JSON.parse(result.content[0].text as string);
+
+    // Only folder/note-d.md should appear in nodes
+    expect(data.nodes).toHaveLength(1);
+    expect(data.nodes[0].path).toBe('folder/note-d.md');
+
+    // Edge from note-d → note-a should still resolve (cross-folder)
+    expect(data.edges.length).toBeGreaterThanOrEqual(1);
+    const crossFolderEdge = data.edges.find(
+      (e: any) => e.source === 'folder/note-d.md' && e.target === 'note-a.md',
+    );
+    expect(crossFolderEdge).toBeDefined();
+    expect(crossFolderEdge.type).toBe('wikilink');
+
+    // Stats should reflect filtered counts
+    expect(data.stats.total_nodes).toBe(1);
+    expect(data.stats.total_edges).toBe(data.edges.length);
+  });
 });
 
 // ─── handleFindOrphans ────────────────────────────────────────────────────────
