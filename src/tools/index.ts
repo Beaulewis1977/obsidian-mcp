@@ -33,8 +33,7 @@ import {
   handleCreateFolder,
   handleGetVaultStats
 } from './handlers2.js';
-import type { ServerConfig, ToolResponse, ToolAnnotations } from '../types/index.js';
-import { ERROR_CODES } from '../types/index.js';
+import { ERROR_CODES, type ServerConfig, type ToolResponse, type ToolAnnotations } from '../types/index.js';
 
 // Module-level rate limiter singleton — persists for process lifetime
 let _rateLimiter: RateLimitManager | null = null;

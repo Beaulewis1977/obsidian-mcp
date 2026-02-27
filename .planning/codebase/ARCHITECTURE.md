@@ -12,7 +12,7 @@ This is a Model Context Protocol (MCP) server that exposes Obsidian vault operat
 - Layered architecture with clear separation of concerns (MCP protocol → Tools → Filesystem/API → Platform)
 - Single entry point (`src/index.ts`) that initializes server and manages tool lifecycle
 - Schema-driven tool validation using Zod
-- Dual data access patterns: filesystem-first with optional Obsidian API fallback
+- Dual data access patterns: read tools use filesystem only; write/search tools try Obsidian API first with filesystem fallback
 - Cross-cutting concerns handled via middleware (rate limiting, logging, error handling)
 
 ## Layers
