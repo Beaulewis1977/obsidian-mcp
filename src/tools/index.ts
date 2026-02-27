@@ -46,6 +46,13 @@ function getRateLimiter(config: ServerConfig): RateLimitManager | null {
   return _rateLimiter;
 }
 
+// Test-only helper to reset module-scoped singleton state between test cases.
+export function _resetRateLimiterForTests(): void {
+  if (process.env.NODE_ENV === 'test') {
+    _rateLimiter = null;
+  }
+}
+
 /**
  * Tool definition
  */

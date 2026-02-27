@@ -30,7 +30,7 @@ import {
 } from '../handlers2.js';
 
 // Import handleToolCall for rate limiter behavioral test
-import { handleToolCall } from '../index.js';
+import { handleToolCall, _resetRateLimiterForTests } from '../index.js';
 
 // Import mocked dependencies
 import { readNote, listNotes, noteExists } from '../../filesystem/vault-reader.js';
@@ -67,6 +67,7 @@ const mockNote = {
 describe('handlers2 Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    _resetRateLimiterForTests();
   });
 
   // ---------------------------------------------------------------------------
