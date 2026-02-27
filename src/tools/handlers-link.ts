@@ -44,10 +44,12 @@ export async function handleGetLinkGraph(
     let nodeValues: import('./link-graph.js').GraphNode[];
     let filteredEdges: typeof graph.edges;
     if (input.folder) {
-      const folderPrefix = input.folder.endsWith('/') ? input.folder : input.folder + '/';
+      // Normalize folder input so Windows backslashes match forward-slash node paths
+      const normalizedFolder = input.folder.replace(/\\/g, '/');
+      const folderPrefix = normalizedFolder.endsWith('/') ? normalizedFolder : normalizedFolder + '/';
       const folderPaths = new Set<string>();
       for (const [p] of graph.nodes) {
-        if (p.startsWith(folderPrefix) || p.startsWith(input.folder + '\\')) {
+        if (p.startsWith(folderPrefix)) {
           folderPaths.add(p);
         }
       }

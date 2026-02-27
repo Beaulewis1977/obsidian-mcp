@@ -10,7 +10,7 @@ requires:
     provides: handlers-link.ts (4 handlers), link-graph.ts (parseWikilinks, buildVaultGraph), schemas.ts (4 Zod schemas), 17 tool registrations
 
 provides:
-  - Integration tests for all 4 link/graph tools (18 tests across 4 describe blocks)
+  - Integration tests for all 4 link/graph tools (19 tests across 4 describe blocks)
   - Test coverage: handleGetLinkGraph, handleFindOrphans, handleSearchTags, handleGetOutgoingLinks
   - Phase 2 pre-commit gate verified clean (tsc + vitest + tsup)
 
@@ -35,7 +35,7 @@ key-files:
 key-decisions:
   - "Embed edges (image.png) are NOT added to graph — buildVaultGraph only creates edges for targets that resolve to known notes; image.png not in vault list so it's correctly absent from edges"
   - "Test fixture uses 4 notes: note-a/note-b/folder/note-d form a cluster; note-c is full orphan (no in/outgoing links)"
-  - "18 tests total: 4 for getLinkGraph, 4 for findOrphans, 4 for searchTags, 6 for getOutgoingLinks — all success + failure paths covered"
+  - "19 tests total: 5 for getLinkGraph, 4 for findOrphans, 4 for searchTags, 6 for getOutgoingLinks — all success + failure paths covered"
 
 requirements-completed: [LINK-01, LINK-02, LINK-03, LINK-04]
 
@@ -45,7 +45,7 @@ completed: 2026-02-27
 
 # Phase 02 Plan 03: Link Tool Integration Tests Summary
 
-**18 integration tests across 4 describe blocks verify all link/graph handlers — pre-commit gate (tsc + vitest 115 tests + tsup) passes clean, completing Phase 2**
+**19 integration tests across 4 describe blocks verify all link/graph handlers — pre-commit gate (tsc + vitest 116 tests + tsup) passes clean, completing Phase 2**
 
 ## Performance
 
@@ -57,12 +57,12 @@ completed: 2026-02-27
 
 ## Accomplishments
 
-- Created `src/tools/__tests__/handlers-link.integration.test.ts` with 18 tests across 4 describe blocks, each with at least 1 success path and 1 failure path
-- `handleGetLinkGraph` tests: graph structure, nodes/edges/stats, edge shape validation, error for invalid vault, correct node tags/folders (4 tests)
+- Created `src/tools/__tests__/handlers-link.integration.test.ts` with 19 tests across 4 describe blocks, each with at least 1 success path and 1 failure path
+- `handleGetLinkGraph` tests: graph structure, nodes/edges/stats, edge shape validation, error for invalid vault, correct node tags/folders, folder-scoped cross-folder resolution (5 tests)
 - `handleFindOrphans` tests: full orphan detection, no_incoming filter, no_outgoing filter, error for invalid vault (4 tests)
 - `handleSearchTags` tests: all tags with counts, query filtering, descending count sort, error for invalid vault (4 tests)
 - `handleGetOutgoingLinks` tests: outgoing wikilinks, embed exclusion, resolve with exists field, aliased links, note not found, invalid vault (6 tests)
-- Full pre-commit gate verified: tsc exits 0, all 115 tests pass (18 new + 97 existing), tsup build succeeds
+- Full pre-commit gate verified: tsc exits 0, all 116 tests pass (19 new + 97 existing), tsup build succeeds
 - All 7 required artifacts confirmed present; 17 tools registered in ToolRegistry
 
 ## Task Commits
