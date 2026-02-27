@@ -89,6 +89,31 @@ export const GetVaultStatsSchema = z.object({
   vault: z.string().optional().describe('Vault name (optional)')
 });
 
+// ─── Link / Graph tool schemas ───────────────────────────────────────────────
+
+export const GetLinkGraphSchema = z.object({
+  vault: z.string().optional().describe('Vault name (optional)'),
+  folder: z.string().optional().describe('Limit graph to a specific folder (optional)'),
+});
+
+export const FindOrphansSchema = z.object({
+  vault: z.string().optional().describe('Vault name (optional)'),
+  type: z.enum(['full', 'no_outgoing', 'no_incoming']).default('full')
+    .describe('Orphan type: full (no links at all), no_outgoing (no outgoing links), no_incoming (no incoming links)'),
+});
+
+export const SearchTagsSchema = z.object({
+  vault: z.string().optional().describe('Vault name (optional)'),
+  query: z.string().optional().describe('Filter tags by prefix or substring (optional)'),
+});
+
+export const GetOutgoingLinksSchema = z.object({
+  path: z.string().min(1).describe('Path to the note'),
+  vault: z.string().optional().describe('Vault name (optional)'),
+  include_embeds: z.boolean().default(true).describe('Include ![[embed]] links'),
+  resolve: z.boolean().default(false).describe('Check if each link target exists in vault'),
+});
+
 // Type exports
 export type ReadNoteInput = z.infer<typeof ReadNoteSchema>;
 export type CreateNoteInput = z.infer<typeof CreateNoteSchema>;
@@ -103,3 +128,7 @@ export type OpenInObsidianInput = z.infer<typeof OpenInObsidianSchema>;
 export type GetBacklinksInput = z.infer<typeof GetBacklinksSchema>;
 export type CreateFolderInput = z.infer<typeof CreateFolderSchema>;
 export type GetVaultStatsInput = z.infer<typeof GetVaultStatsSchema>;
+export type GetLinkGraphInput = z.infer<typeof GetLinkGraphSchema>;
+export type FindOrphansInput = z.infer<typeof FindOrphansSchema>;
+export type SearchTagsInput = z.infer<typeof SearchTagsSchema>;
+export type GetOutgoingLinksInput = z.infer<typeof GetOutgoingLinksSchema>;
