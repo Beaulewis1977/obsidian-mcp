@@ -13,7 +13,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "lint": "tsc --noEmit",
+    "lint": "node --max-old-space-size=16384 ./node_modules/typescript/bin/tsc --noEmit",
     "prepare": "husky",
     "precommit": "npm run lint && npm test -- --run"
   },
@@ -27,7 +27,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.6.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "chokidar": "^4.0.0",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.5",
