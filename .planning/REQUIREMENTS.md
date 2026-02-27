@@ -103,7 +103,7 @@ Deferred to Milestone 3+. Acknowledged but not in this roadmap.
 
 ## Traceability
 
-Populated during roadmap creation.
+Roadmap created 2026-02-26. All 35 v1 requirements mapped across 4 phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -149,4 +149,4 @@ Populated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-26*
-*Last updated: 2026-02-26 after initial definition*
+*Last updated: 2026-02-26 after roadmap creation*
