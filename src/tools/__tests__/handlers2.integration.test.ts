@@ -234,6 +234,46 @@ describe('handlers2 Integration Tests', () => {
       expect(result.structuredContent).toBeDefined();
       expect(result.structuredContent).toMatchObject({ success: true, method: 'app' });
     });
+
+    it('should fall back to URI when app spawn fails for vault-open', async () => {
+      mockOpenInObsidian.mockRejectedValue(new Error('Obsidian executable not found'));
+      mockOpenURI.mockResolvedValue(undefined);
+
+      const result = await handleOpenInObsidian(mockConfig as any, {
+        vault: 'test',
+      });
+
+      expect(result.isError).toBeUndefined();
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed).toMatchObject({ success: true, method: 'uri' });
+      expect(parsed.fallback_reason).toBe('Obsidian executable not found');
+      expect(result.structuredContent).toBeDefined();
+      expect(result.structuredContent).toMatchObject({ success: true, method: 'uri' });
+    });
+
+    it('should return PROCESS_SPAWN_FAILED when all open methods fail', async () => {
+      mockOpenInObsidian.mockRejectedValue(new Error('Obsidian executable not found'));
+      mockOpenURI.mockRejectedValue(new Error('URI open failed'));
+
+      const result = await handleOpenInObsidian(mockConfig as any, {
+        vault: 'test',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('PROCESS_SPAWN_FAILED');
+    });
+
+    it('should return PROCESS_SPAWN_FAILED when URI fails for note-open', async () => {
+      mockOpenURI.mockRejectedValue(new Error('URI protocol not supported'));
+
+      const result = await handleOpenInObsidian(mockConfig as any, {
+        vault: 'test',
+        path: 'some-note',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('PROCESS_SPAWN_FAILED');
+    });
   });
 
   // ---------------------------------------------------------------------------

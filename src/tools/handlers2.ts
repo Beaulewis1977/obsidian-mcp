@@ -362,20 +362,34 @@ export async function handleOpenInObsidian(
         structuredContent: uriPayload as Record<string, unknown>
       };
     } else {
-      // Open vault
-      await platformOpenInObsidian(vault.path);
+      // Open vault — try app spawn first, fall back to URI protocol
+      let vaultMethod: 'app' | 'uri' = 'app';
+      let vaultFallbackReason: string | undefined;
 
-      const vaultPayload = {
+      try {
+        await platformOpenInObsidian(vault.path);
+      } catch (appError) {
+        logger.warn({ error: appError }, 'App spawn failed, trying URI protocol');
+        vaultFallbackReason = (appError as Error).message;
+        vaultMethod = 'uri';
+        const uri = `obsidian://open?vault=${encodeURIComponent(vault.name)}`;
+        await openURI(uri);
+      }
+
+      const vaultPayload: Record<string, unknown> = {
         success: true,
-        method: 'app',
+        method: vaultMethod,
         vault: vault.name
       };
+      if (vaultFallbackReason) {
+        vaultPayload.fallback_reason = vaultFallbackReason;
+      }
       return {
         content: [{
           type: 'text',
           text: JSON.stringify(vaultPayload, null, 2)
         }],
-        structuredContent: vaultPayload as Record<string, unknown>
+        structuredContent: vaultPayload
       };
     }
   } catch (error: any) {

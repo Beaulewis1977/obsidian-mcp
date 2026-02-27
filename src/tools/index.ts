@@ -98,6 +98,7 @@ export function getToolDefinitions(): ToolDefinition[] {
           warning: { type: 'string' },
           fallback_reason: { type: 'string' },
           api_metadata: { type: 'object' },
+          open_note_metadata: { type: 'object' },
           error: { type: 'string' }
         },
         required: ['success', 'path']
@@ -131,7 +132,10 @@ export function getToolDefinitions(): ToolDefinition[] {
         properties: {
           success: { type: 'boolean' },
           path: { type: 'string' },
-          message: { type: 'string' },
+          method: { type: 'string', enum: ['api', 'filesystem'] },
+          warning: { type: 'string' },
+          api_metadata: { type: 'object' },
+          fallback_reason: { type: 'string' },
           error: { type: 'string' }
         },
         required: ['success', 'path']
@@ -165,7 +169,11 @@ export function getToolDefinitions(): ToolDefinition[] {
           results: { type: 'array', items: { type: 'object' } },
           total: { type: 'number' },
           query: { type: 'string' },
-          backend: { type: 'string' },
+          method: { type: 'string', enum: ['obsidian', 'filesystem'] },
+          vault: { type: 'string' },
+          api_metadata: { type: 'object' },
+          api_used: { type: 'boolean' },
+          fallback_reason: { type: 'string' },
           error: { type: 'string' }
         },
         required: ['results', 'total', 'query']
