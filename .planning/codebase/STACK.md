@@ -24,7 +24,7 @@
 ## Frameworks
 
 **Core:**
-- @modelcontextprotocol/sdk 0.6.0 - Model Context Protocol server implementation
+- @modelcontextprotocol/sdk 1.27.1 - Model Context Protocol server implementation
   - Provides Server, StdioServerTransport, and request/response handling
   - Located: `src/index.ts`
 
@@ -59,7 +59,7 @@
 
 **Critical:**
 
-- @modelcontextprotocol/sdk 0.6.0 - MCP protocol implementation
+- @modelcontextprotocol/sdk 1.27.1 - MCP protocol implementation
   - Bundled into final distribution
   - Core to server functionality
 

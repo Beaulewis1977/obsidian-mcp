@@ -2,7 +2,7 @@
 
 **Domain:** MCP Server with Dynamic Tool Registry (Lazy Loading)
 **Researched:** 2026-02-26
-**Confidence:** HIGH — all SDK claims verified directly against installed source at `node_modules/@modelcontextprotocol/sdk@0.6.1`
+**Confidence:** HIGH — all SDK claims verified directly against installed source at `node_modules/@modelcontextprotocol/sdk@1.27.1`
 
 ---
 
@@ -10,7 +10,7 @@
 
 ### System Overview
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────────┐
 │                     MCP CLIENT (Claude Code)                      │
 │  ┌─────────────┐  ┌──────────────┐  ┌──────────────────────────┐ │
@@ -62,7 +62,7 @@
 
 ## SDK API: notifications/tools/list_changed
 
-**Confidence: HIGH — read directly from `node_modules/@modelcontextprotocol/sdk@0.6.1/dist/server/index.d.ts` and `index.js`.**
+**Confidence: HIGH — read directly from `node_modules/@modelcontextprotocol/sdk@1.27.1/dist/server/index.d.ts` and `index.js`.**
 
 ### Exact Method
 
@@ -336,7 +336,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 ### Tool Enable Flow (Happy Path)
 
-```
+```text
 Client calls enable_tool({ tool_name: "get_link_graph" })
   │
   ▼
@@ -365,7 +365,7 @@ Client calls get_link_graph({ ... })
 
 ### Lazy Loading Disabled (Backward Compatible)
 
-```
+```text
 config.lazy_loading = false
   │
   ▼
@@ -462,7 +462,7 @@ async function handleEnableTool(registry, args) {
 
 The lazy loading implementation has hard dependencies that enforce build order:
 
-```
+```text
 1. Config layer: add lazy_loading field to ServerConfig + loadConfig()
      ↓ (types must exist before registry can be typed)
 
@@ -548,10 +548,10 @@ This is a single-user, single-process MCP server over stdio. Traditional scaling
 
 ## Sources
 
-- `node_modules/@modelcontextprotocol/sdk@0.6.1/dist/server/index.d.ts` — `sendToolListChanged()` signature (HIGH confidence, direct source)
-- `node_modules/@modelcontextprotocol/sdk@0.6.1/dist/server/index.js` — `sendToolListChanged()` implementation, capability guard logic (HIGH confidence, direct source)
-- `node_modules/@modelcontextprotocol/sdk@0.6.1/dist/shared/protocol.d.ts` — `notification()` base method, `Protocol` class structure (HIGH confidence, direct source)
-- `node_modules/@modelcontextprotocol/sdk@0.6.1/dist/types.d.ts` — `ToolSchema`, `ToolListChangedNotificationSchema`, `ServerCapabilities` (HIGH confidence, direct source)
+- `node_modules/@modelcontextprotocol/sdk@1.27.1/dist/server/index.d.ts` — `sendToolListChanged()` signature (HIGH confidence, direct source)
+- `node_modules/@modelcontextprotocol/sdk@1.27.1/dist/server/index.js` — `sendToolListChanged()` implementation, capability guard logic (HIGH confidence, direct source)
+- `node_modules/@modelcontextprotocol/sdk@1.27.1/dist/shared/protocol.d.ts` — `notification()` base method, `Protocol` class structure (HIGH confidence, direct source)
+- `node_modules/@modelcontextprotocol/sdk@1.27.1/dist/types.d.ts` — `ToolSchema`, `ToolListChangedNotificationSchema`, `ServerCapabilities` (HIGH confidence, direct source)
 - `src/index.ts` — Current server initialization and handler wiring (direct read)
 - `src/tools/index.ts` — Current dispatch pattern (direct read)
 - `docs/TOOL_EXPANSION_SPEC.md` Section 6 — Lazy loading design intent and meta-tool contracts (project document)

@@ -28,17 +28,17 @@ Claude can reliably read, write, organize, and navigate Obsidian notes through a
 - ✓ `create_folder` — create folder in vault
 - ✓ `get_vault_stats` — vault statistics
 
-### Active
+### Complete
 
-**Bug fixes & quality:**
-- [ ] F-CRIT-01: Rate limiter made process-scoped singleton (currently resets per call)
-- [ ] F-CRIT-02: `open_in_obsidian` works on native Windows (cross-platform exec detection + URI fallback)
-- [ ] F-HIGH-01: MCP 2025-11-25 modernization — `outputSchema`, `annotations`, `structuredContent` on all 13 existing tools
-- [ ] F-HIGH-03: Docs aligned with runtime behavior (search mode default, write-path exceptions)
-- [ ] F-MED-01: `create_note` frontmatter uses `matter.stringify` instead of manual string interpolation
-- [ ] F-MED-02: `get_daily_note` response normalized to consistent field names (`path` in all branches)
-- [ ] F-MED-03: Integration test coverage for all `handlers2.ts` tools
-- [ ] F-MED-04: TOOL_EXPANSION_SPEC ambiguities resolved (enable_tool contract, get_link_graph modes, ServerConfig typing)
+**Bug fixes & quality (Phase 1):**
+- [x] F-CRIT-01: Rate limiter made process-scoped singleton (currently resets per call)
+- [x] F-CRIT-02: `open_in_obsidian` works on native Windows (cross-platform exec detection + URI fallback)
+- [x] F-HIGH-01: MCP 2025-11-25 modernization — `outputSchema`, `annotations`, `structuredContent` on all 13 existing tools
+- [x] F-HIGH-03: Docs aligned with runtime behavior (search mode default, write-path exceptions)
+- [x] F-MED-01: `create_note` frontmatter uses `matter.stringify` instead of manual string interpolation
+- [x] F-MED-02: `get_daily_note` response normalized to consistent field names (`path` in all branches)
+- [x] F-MED-03: Integration test coverage for all `handlers2.ts` tools
+- [x] F-MED-04: TOOL_EXPANSION_SPEC ambiguities resolved (enable_tool contract, get_link_graph modes, ServerConfig typing)
 
 **New tools — P1 (Wave 2):**
 - [ ] `get_link_graph` — vault-wide link graph (nodes, edges, stats)
@@ -61,7 +61,7 @@ Claude can reliably read, write, organize, and navigate Obsidian notes through a
 - [ ] `list_templates` — list available templates in vault template folder
 
 **Polish (Wave 5):**
-- [ ] `input_examples` added to all tools
+- [ ] `examples` added to all tool input schema properties (JSON Schema 2020-12 per-property examples arrays)
 - [ ] Pagination for `list_notes`, `search_notes`, `search_tags`
 - [ ] `API_REFERENCE.md` updated to match final implementation
 

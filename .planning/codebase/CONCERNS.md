@@ -152,14 +152,14 @@
 
 ## Dependencies at Risk
 
-**MCP SDK Version Pinned to ^0.6.0:**
-- Risk: SDK is still in early 0.x phase. Minor version updates could introduce breaking changes
-- Current version: `@modelcontextprotocol/sdk: ^0.6.0` in `package.json`
-- Impact: Minor SDK updates could break server without warning if they change protocol implementation
+**MCP SDK Major Version Updates:**
+- Risk: SDK is at 1.x (stable). Major version bumps (2.x+) may introduce breaking protocol changes
+- Current version: `@modelcontextprotocol/sdk: ^1.27.1` in `package.json`
+- Impact: Major SDK version bumps could break server; minor/patch updates within 1.x are generally safe
 - Migration plan:
-  - Pin to specific version `0.6.0` instead of `^0.6.0` until SDK reaches 1.0
-  - Set up bot monitoring for SDK updates
-  - Test thoroughly before updating
+  - Set up bot monitoring for SDK updates (Dependabot or Renovate)
+  - Test thoroughly before any major version update
+  - Review Server constructor, ToolSchema shape, and CallToolResult shape on major bumps
   - Document any SDK version compatibility notes
 
 **Gray-Matter Used for YAML Parsing:**

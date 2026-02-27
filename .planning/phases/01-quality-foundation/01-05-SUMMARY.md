@@ -105,7 +105,7 @@ completed: 2026-02-27
 - **Found during:** Task 1 (writing the rate limiter behavioral test)
 - **Issue:** Plan specified `rate_limiting: { enabled: true, per_minute: 2 }` as the config shape but the actual `RateLimitConfig` interface requires `backend`, `limits.global`, `limits.read`, `limits.write`, and `graceful` fields — the simplified shape would cause a TypeScript error and runtime failure
 - **Fix:** Used the full `RateLimitConfig` structure with `global.requests_per_minute: 2` as the limiting constraint
-- **Files modified:** src/tools/__tests__/handlers2.integration.test.ts
+- **Files modified:** `src/tools/__tests__/handlers2.integration.test.ts`
 - **Verification:** tsc --noEmit passes; rate limiter behavioral test passes
 - **Committed in:** 87c56ec
 

@@ -43,7 +43,7 @@ This is a Model Context Protocol (MCP) server that exposes Obsidian vault operat
 - Location: `src/obsidian/api-client.ts`
 - Contains: HTTP client, retry logic, availability checking, SSL/TLS configuration
 - Depends on: node-fetch, https module
-- Used by: Tool handlers (read operations preferentially use API if available)
+- Used by: Tool handlers (write/search operations try API first, then fall back to filesystem)
 
 **Platform Layer:**
 - Purpose: OS-specific abstractions for path handling, process execution, file watching

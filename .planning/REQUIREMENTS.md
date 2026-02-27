@@ -107,7 +107,7 @@ Roadmap created 2026-02-26. All 35 v1 requirements mapped across 4 phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SDK-01 | Phase 1 | Pending |
+| SDK-01 | Phase 1 | Complete |
 | BUG-01 | Phase 1 | Complete |
 | BUG-02 | Phase 1 | Complete |
 | BUG-03 | Phase 1 | Complete |
