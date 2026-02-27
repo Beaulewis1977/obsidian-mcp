@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 Phase: 1 of 4 (Quality Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-26 — Roadmap created (4 phases, 35 requirements mapped)
+Plan: 1 of 5 completed in current phase
+Status: In progress — Plan 01 complete
+Last activity: 2026-02-27 — Plan 01-01 complete (SDK upgrade, type extensions, docs fix)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 5% (1/20 total plans across 4 phases estimated)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 35 min
+- Total execution time: 0.58 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-quality-foundation | 1 | 35 min | 35 min |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 35m
+- Trend: baseline
 
 *Updated after each plan completion*
 
@@ -47,6 +47,9 @@ Recent decisions affecting current work:
 - [Pre-Phase 1]: `outputSchema` + `isError: true` may cause SDK validation failure — include error field in every `outputSchema` as safe fallback; verify PR #655 fix status in 1.27.1
 - [Pre-Phase 1]: `enable_tool` response includes full tool schema in body (fallback for clients without `list_changed` support, e.g., Claude Desktop)
 - [Pre-Phase 1]: `onToolListChanged` fired without await to prevent race between enable_tool response and notification delivery
+- [01-01]: tsconfig.json moduleResolution changed from "node" to "bundler" — MCP SDK 1.27.1 types.d.ts imports zod/v4 ExpandRecursively<T>; "node" resolution caused OOM; "bundler" completes in <1s
+- [01-01]: lint script uses `node --max-old-space-size=16384 ./node_modules/typescript/bin/tsc --noEmit` to ensure reliable tsc execution
+- [01-01]: ToolResponse = CallToolResult kept as alias; structuredContent already available via SDK 1.27.1 (no manual augmentation needed)
 
 ### Pending Todos
 
@@ -59,6 +62,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: Roadmap created and committed; Phase 1 ready to plan
+Last session: 2026-02-27
+Stopped at: Completed 01-01-PLAN.md (SDK upgrade, type extensions, docs fix — 3 tasks, 4 files, 3 commits)
 Resume file: None

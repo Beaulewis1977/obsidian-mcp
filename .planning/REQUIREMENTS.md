@@ -9,7 +9,7 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 
 ### SDK Upgrade
 
-- [ ] **SDK-01**: Server runs on `@modelcontextprotocol/sdk@^1.27.1` (upgraded from `^0.6.1`)
+- [x] **SDK-01**: Server runs on `@modelcontextprotocol/sdk@^1.27.1` (upgraded from `^0.6.1`)
 
 ### Bug Fixes
 
@@ -23,8 +23,8 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 - [ ] **SPEC-01**: All 13 existing tools declare `outputSchema` matching their current response shape
 - [ ] **SPEC-02**: All 13 existing tools return `structuredContent` alongside `content[0].text` (additive, no breakage)
 - [ ] **SPEC-03**: All 13 existing tools declare `annotations` (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`)
-- [ ] **SPEC-04**: `search_notes` documentation matches runtime behavior — default backend and write-path exceptions are accurate (F-HIGH-03)
-- [ ] **SPEC-05**: All spec ambiguities in TOOL_EXPANSION_SPEC resolved — `enable_tool` contract, `get_link_graph` full vs traversal modes, ServerConfig typing (F-MED-04)
+- [x] **SPEC-04**: `search_notes` documentation matches runtime behavior — default backend and write-path exceptions are accurate (F-HIGH-03)
+- [x] **SPEC-05**: All spec ambiguities in TOOL_EXPANSION_SPEC resolved — `enable_tool` contract, `get_link_graph` full vs traversal modes, ServerConfig typing (F-MED-04)
 
 ### Test Coverage
 
