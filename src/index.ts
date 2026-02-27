@@ -42,7 +42,7 @@ async function main() {
       platform: platform.platform
     }, 'Configuration loaded');
 
-    // Build tool registry — registers and enables all 13 tools
+    // Build tool registry — registers and enables all 17 tools
     const registry = buildRegistry();
 
     // Create MCP server

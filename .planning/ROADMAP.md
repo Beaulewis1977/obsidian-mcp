@@ -52,7 +52,7 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md — ToolRegistry class + buildRegistry() factory + dispatch migration from switch to registry
 - [x] 02-02-PLAN.md — Link graph utility + 4 new link/graph tool handlers + Zod schemas + registry registration
-- [ ] 02-03-PLAN.md — Integration tests for all 4 link tools + full pre-commit gate verification
+- [x] 02-03-PLAN.md — Integration tests for all 4 link tools + full pre-commit gate verification
 
 ### Phase 3: Lazy Loading
 **Goal**: Clients that start a session receive only `discover_tools` and `enable_tool` by default, reducing LLM context overhead from ~12,000 to ~1,000 tokens; clients that need the old behavior can set `lazy_loading: false`

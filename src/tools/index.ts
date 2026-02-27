@@ -84,7 +84,7 @@ export interface ToolDefinition {
 }
 
 /**
- * Build and return a fully-populated ToolRegistry with all 13 tools registered and enabled.
+ * Build and return a fully-populated ToolRegistry with all 17 tools registered and enabled.
  *
  * Call once at server startup; reuse the returned registry for the process lifetime.
  */
