@@ -223,9 +223,9 @@ export async function handleGetDailyNote(
         content: [{
           type: 'text',
           text: JSON.stringify({
-            notePath: notePath,
-            created: false,
-            ...note
+            ...note,
+            path: notePath,
+            created: false
           }, null, 2)
         }]
       };

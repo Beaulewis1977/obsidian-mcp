@@ -6,6 +6,7 @@ import { openInObsidian as platformOpenInObsidian } from '../platform/process-sp
 import { validatePath, ensureMarkdownExtension } from '../utils/validators.js';
 import { createErrorResponse } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
+import { stringifyMarkdown } from '../filesystem/markdown-parser.js';
 import type {
   ServerConfig,
   VaultConfig,
@@ -137,8 +138,8 @@ export async function handleCreateNote(
 
     // Try API first
     if (apiClient && await apiClient.checkAvailability(true)) {
-      const fullContent = input.frontmatter
-        ? `---\n${Object.entries(input.frontmatter).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('\n')}\n---\n\n${input.content}`
+      const fullContent = input.frontmatter && Object.keys(input.frontmatter).length > 0
+        ? stringifyMarkdown({ frontmatter: input.frontmatter, content: input.content })
         : input.content;
 
       try {
