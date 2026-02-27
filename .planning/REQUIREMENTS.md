@@ -28,8 +28,8 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 
 ### Test Coverage
 
-- [ ] **TEST-01**: `handlers2.ts` tools have integration tests covering at least one success path and one failure path each (F-MED-03)
-- [ ] **TEST-02**: All new tools in this milestone have integration tests covering success + failure paths
+- [x] **TEST-01**: `handlers2.ts` tools have integration tests covering at least one success path and one failure path each (F-MED-03)
+- [x] **TEST-02**: All new tools in this milestone have integration tests covering success + failure paths
 
 ### Tool Registry Architecture
 
@@ -117,8 +117,8 @@ Roadmap created 2026-02-26. All 35 v1 requirements mapped across 4 phases.
 | SPEC-03 | Phase 1 | Complete |
 | SPEC-04 | Phase 1 | Pending |
 | SPEC-05 | Phase 1 | Pending |
-| TEST-01 | Phase 1 | Pending |
-| TEST-02 | Phase 1–4 | Pending |
+| TEST-01 | Phase 1 | Complete |
+| TEST-02 | Phase 1–4 | Complete (Phase 1) |
 | REGX-01 | Phase 2 | Pending |
 | REGX-02 | Phase 2 | Pending |
 | REGX-03 | Phase 2 | Pending |

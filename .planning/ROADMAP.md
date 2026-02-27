@@ -12,7 +12,7 @@ Milestone 2 takes a working 13-tool server and makes it the best Obsidian MCP im
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Quality Foundation** - Fix critical bugs, upgrade SDK, modernize to MCP 2025-11-25 spec, add missing test coverage
+- [x] **Phase 1: Quality Foundation** - Fix critical bugs, upgrade SDK, modernize to MCP 2025-11-25 spec, add missing test coverage
 - [ ] **Phase 2: Registry + Link Tools** - Replace static switch dispatch with ToolRegistry architecture, add 4 high-value link/graph tools
 - [ ] **Phase 3: Lazy Loading** - Add discover_tools + enable_tool meta-tools, wire config-gated lazy loading for 80%+ token reduction
 - [ ] **Phase 4: Extended Tools + Polish** - Add 5 extended tools, per-property input examples, pagination, and final docs
@@ -35,8 +35,8 @@ Plans:
 - [x] 01-01-PLAN.md — SDK upgrade to 1.27.1, extend ToolAnnotations + ServerConfig types, fix API docs drift
 - [x] 01-02-PLAN.md — Fix all 4 bugs: rate limiter singleton, Windows exe detection, frontmatter serialization, get_daily_note path field
 - [x] 01-03-PLAN.md — Add outputSchema + annotations to all 13 tool definitions
-- [ ] 01-04-PLAN.md — Add structuredContent to all 13 handler success responses
-- [ ] 01-05-PLAN.md — handlers2 integration test suite + full pre-commit gate verification
+- [x] 01-04-PLAN.md — Add structuredContent to all 13 handler success responses
+- [x] 01-05-PLAN.md — handlers2 integration test suite + full pre-commit gate verification
 
 ### Phase 2: Registry + Link Tools
 **Goal**: Static switch dispatch is replaced by a `ToolRegistry` class; four new link/graph tools are registered and usable; the architecture is validated and ready for lazy-loading wiring
@@ -78,7 +78,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Quality Foundation | 4/5 | In Progress|  |
+| 1. Quality Foundation | 5/5 | Complete | 2026-02-27 |
 | 2. Registry + Link Tools | 0/TBD | Not started | - |
 | 3. Lazy Loading | 0/TBD | Not started | - |
 | 4. Extended Tools + Polish | 0/TBD | Not started | - |

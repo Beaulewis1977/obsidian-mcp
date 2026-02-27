@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-02-27T16:10:00.000Z"
+last_updated: "2026-02-27T16:13:00.000Z"
 progress:
-  total_phases: 1
-  completed_phases: 0
+  total_phases: 4
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Claude can reliably read, write, organize, and navigate Obsidian notes through a spec-compliant, efficient MCP interface.
-**Current focus:** Phase 1 — Quality Foundation
+**Current focus:** Phase 1 complete — Phase 2 next
 
 ## Current Position
 
-Phase: 1 of 4 (Quality Foundation)
-Plan: 4 of 5 completed in current phase
-Status: In progress — Plan 04 complete
-Last activity: 2026-02-27 — Plan 01-04 complete (structuredContent on all 13 handler success responses)
+Phase: 1 of 4 (Quality Foundation) — COMPLETE
+Plan: 5 of 5 completed in current phase
+Status: Phase 1 complete — all 5 plans executed, pre-commit gate clean
+Last activity: 2026-02-27 — Plan 01-05 complete (16 integration tests for handlers2.ts + rate limiter behavioral test)
 
-Progress: [████░░░░░░] 20% (4/20 total plans across 4 phases estimated)
+Progress: [██░░░░░░░░] 25% (5/20 total plans across 4 phases estimated)
 
 ## Performance Metrics
 
@@ -40,10 +40,10 @@ Progress: [████░░░░░░] 20% (4/20 total plans across 4 phases
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-quality-foundation | 4 | 52 min | 13 min |
+| 01-quality-foundation | 5 | 60 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 35m, 7m, 5m, 5m
+- Last 5 plans: 35m, 7m, 5m, 5m, 8m
 - Trend: fast (additive pattern implementation)
 
 *Updated after each plan completion*
@@ -71,6 +71,8 @@ Recent decisions affecting current work:
 - [01-03]: move_note destructive=true (removes source file); get_daily_note idempotent=false (creates file on first call for a date); open_in_obsidian openWorld=true (launches external app)
 - [Phase 01]: Spread order in get_daily_note: { ...note, path: notePath } not { path: notePath, ...note } — Note type has path field, putting explicit key before spread causes TS2783
 - [Phase 01]: handlers2.ts handleOpenInObsidian: named payload variables per branch (apiPayload, uriPayload, vaultPayload) to avoid variable shadowing across 3 success return paths
+- [01-05]: Rate limiter behavioral test uses handleToolCall from index.ts (not handler directly) — rate limiting is applied at dispatch level, handlers bypass it if called directly
+- [01-05]: Full RateLimitConfig structure required for behavioral test (limits.global/read/write, graceful) — simplified per_minute:2 shape does not match interface
 
 ### Pending Todos
 
@@ -84,5 +86,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 01-04-PLAN.md (structuredContent on all 13 handler success responses — 2 tasks, 1 file modified, 2 commits)
+Stopped at: Completed 01-05-PLAN.md (16 integration tests for handlers2.ts tools + rate limiter behavioral test — 1 file created, 1 commit; Phase 1 complete)
 Resume file: None
