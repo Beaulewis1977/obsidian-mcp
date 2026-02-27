@@ -71,12 +71,13 @@ export async function handleReadNote(
     
     // Read note from filesystem
     const note = await readNote(vault.path, notePath);
-    
+
     return {
       content: [{
         type: 'text',
         text: JSON.stringify(note, null, 2)
-      }]
+      }],
+      structuredContent: note as unknown as Record<string, unknown>
     };
   } catch (error: any) {
     logger.error({ error, input }, 'Failed to read note');
@@ -211,7 +212,8 @@ export async function handleCreateNote(
       content: [{
         type: 'text',
         text: JSON.stringify(payload, null, 2)
-      }]
+      }],
+      structuredContent: payload
     };
   } catch (error: any) {
     logger.error({ error, input }, 'Failed to create note');
@@ -346,7 +348,8 @@ export async function handleEditNote(
       content: [{
         type: 'text',
         text: JSON.stringify(payload, null, 2)
-      }]
+      }],
+      structuredContent: payload
     };
   } catch (error: any) {
     logger.error({ error, input }, 'Failed to edit note');
@@ -428,7 +431,8 @@ export async function handleDeleteNote(
       content: [{
         type: 'text',
         text: JSON.stringify(payload, null, 2)
-      }]
+      }],
+      structuredContent: payload
     };
   } catch (error: any) {
     logger.error({ error, input }, 'Failed to delete note');
@@ -496,15 +500,18 @@ export async function handleListNotes(
       }
     }
     
+    const payload: Record<string, unknown> = {
+      notes,
+      total: notes.length,
+      vault: vault.name
+    };
+
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          notes,
-          total: notes.length,
-          vault: vault.name
-        }, null, 2)
-      }]
+        text: JSON.stringify(payload, null, 2)
+      }],
+      structuredContent: payload
     };
   } catch (error: any) {
     logger.error({ error, input }, 'Failed to list notes');
@@ -578,7 +585,8 @@ export async function handleSearchNotes(
       content: [{
         type: 'text',
         text: JSON.stringify(payload, null, 2)
-      }]
+      }],
+      structuredContent: payload
     };
   } catch (error: any) {
     logger.error({ error, input }, 'Failed to search notes');
