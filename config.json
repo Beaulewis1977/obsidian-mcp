@@ -2,7 +2,7 @@
   "version": "1.0",
   "vaults": [
     {
-      "name": "main-vault",
+      "name": "Obsidian",
       "path": "${VAULT_PATH}",
       "default": true,
       "obsidian_api": {
@@ -13,7 +13,7 @@
       }
     },
     {
-      "name": "second-vault",
+      "name": "Obsidian-wsl",
       "path": "${VAULT_PATH_2}",
       "default": false,
       "obsidian_api": {
