@@ -20,9 +20,9 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 
 ### MCP Spec Modernization
 
-- [ ] **SPEC-01**: All 13 existing tools declare `outputSchema` matching their current response shape
+- [x] **SPEC-01**: All 13 existing tools declare `outputSchema` matching their current response shape
 - [ ] **SPEC-02**: All 13 existing tools return `structuredContent` alongside `content[0].text` (additive, no breakage)
-- [ ] **SPEC-03**: All 13 existing tools declare `annotations` (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`)
+- [x] **SPEC-03**: All 13 existing tools declare `annotations` (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`)
 - [x] **SPEC-04**: `search_notes` documentation matches runtime behavior — default backend and write-path exceptions are accurate (F-HIGH-03)
 - [x] **SPEC-05**: All spec ambiguities in TOOL_EXPANSION_SPEC resolved — `enable_tool` contract, `get_link_graph` full vs traversal modes, ServerConfig typing (F-MED-04)
 
@@ -112,9 +112,9 @@ Roadmap created 2026-02-26. All 35 v1 requirements mapped across 4 phases.
 | BUG-02 | Phase 1 | Complete |
 | BUG-03 | Phase 1 | Complete |
 | BUG-04 | Phase 1 | Complete |
-| SPEC-01 | Phase 1 | Pending |
+| SPEC-01 | Phase 1 | Complete |
 | SPEC-02 | Phase 1 | Pending |
-| SPEC-03 | Phase 1 | Pending |
+| SPEC-03 | Phase 1 | Complete |
 | SPEC-04 | Phase 1 | Pending |
 | SPEC-05 | Phase 1 | Pending |
 | TEST-01 | Phase 1 | Pending |

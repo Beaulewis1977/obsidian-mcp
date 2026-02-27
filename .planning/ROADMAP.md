@@ -33,8 +33,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — SDK upgrade to 1.27.1, extend ToolAnnotations + ServerConfig types, fix API docs drift
-- [ ] 01-02-PLAN.md — Fix all 4 bugs: rate limiter singleton, Windows exe detection, frontmatter serialization, get_daily_note path field
-- [ ] 01-03-PLAN.md — Add outputSchema + annotations to all 13 tool definitions
+- [x] 01-02-PLAN.md — Fix all 4 bugs: rate limiter singleton, Windows exe detection, frontmatter serialization, get_daily_note path field
+- [x] 01-03-PLAN.md — Add outputSchema + annotations to all 13 tool definitions
 - [ ] 01-04-PLAN.md — Add structuredContent to all 13 handler success responses
 - [ ] 01-05-PLAN.md — handlers2 integration test suite + full pre-commit gate verification
 
@@ -78,7 +78,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Quality Foundation | 2/5 | In Progress|  |
+| 1. Quality Foundation | 3/5 | In Progress|  |
 | 2. Registry + Link Tools | 0/TBD | Not started | - |
 | 3. Lazy Loading | 0/TBD | Not started | - |
 | 4. Extended Tools + Polish | 0/TBD | Not started | - |
