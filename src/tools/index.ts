@@ -14,7 +14,11 @@ import {
   OpenInObsidianSchema,
   GetBacklinksSchema,
   CreateFolderSchema,
-  GetVaultStatsSchema
+  GetVaultStatsSchema,
+  GetLinkGraphSchema,
+  FindOrphansSchema,
+  SearchTagsSchema,
+  GetOutgoingLinksSchema,
 } from './schemas.js';
 import {
   handleReadNote,
@@ -33,6 +37,12 @@ import {
   handleCreateFolder,
   handleGetVaultStats
 } from './handlers2.js';
+import {
+  handleGetLinkGraph,
+  handleFindOrphans,
+  handleSearchTags,
+  handleGetOutgoingLinks,
+} from './handlers-link.js';
 import type { ServerConfig } from '../types/index.js';
 import { ToolRegistry } from './registry.js';
 
@@ -418,6 +428,115 @@ export function buildRegistry(): ToolRegistry {
     schema: GetVaultStatsSchema,
     category: 'Vault',
     alwaysLoaded: true
+  });
+
+  // ── Link / Graph tools (LINK-01 … LINK-04) ────────────────────────────────
+
+  registry.register({
+    definition: {
+      name: 'get_link_graph',
+      description: 'Get a directed graph of all notes in the vault showing links between them, with graph statistics',
+      inputSchema: zodToJsonSchema(GetLinkGraphSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          vault: { type: 'string' },
+          stats: { type: 'object' },
+          nodes: { type: 'array', items: { type: 'object' } },
+          edges: { type: 'array', items: { type: 'object' } },
+          error: { type: 'string' },
+        },
+        required: ['vault', 'stats', 'nodes', 'edges'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleGetLinkGraph(config, args),
+    schema: GetLinkGraphSchema,
+    category: 'Graph',
+    alwaysLoaded: true,
+  });
+
+  registry.register({
+    definition: {
+      name: 'find_orphans',
+      description: 'Find notes with no incoming and/or no outgoing links (orphaned notes)',
+      inputSchema: zodToJsonSchema(FindOrphansSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          vault: { type: 'string' },
+          type: { type: 'string' },
+          orphans: { type: 'array', items: { type: 'object' } },
+          total: { type: 'number' },
+          total_notes: { type: 'number' },
+          error: { type: 'string' },
+        },
+        required: ['vault', 'orphans', 'total'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleFindOrphans(config, args),
+    schema: FindOrphansSchema,
+    category: 'Graph',
+    alwaysLoaded: true,
+  });
+
+  registry.register({
+    definition: {
+      name: 'search_tags',
+      description: 'Search for tags used across the vault with usage counts per tag',
+      inputSchema: zodToJsonSchema(SearchTagsSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          vault: { type: 'string' },
+          tags: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                tag: { type: 'string' },
+                count: { type: 'number' },
+                notes: { type: 'array', items: { type: 'string' } },
+              },
+            },
+          },
+          total: { type: 'number' },
+          query: { type: 'string' },
+          error: { type: 'string' },
+        },
+        required: ['vault', 'tags', 'total'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleSearchTags(config, args),
+    schema: SearchTagsSchema,
+    category: 'Graph',
+    alwaysLoaded: true,
+  });
+
+  registry.register({
+    definition: {
+      name: 'get_outgoing_links',
+      description: 'Get all outgoing wikilinks and embeds from a specific note',
+      inputSchema: zodToJsonSchema(GetOutgoingLinksSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          source: { type: 'string' },
+          links: { type: 'array', items: { type: 'object' } },
+          total: { type: 'number' },
+          broken_count: { type: 'number' },
+          error: { type: 'string' },
+        },
+        required: ['source', 'links', 'total'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleGetOutgoingLinks(config, args),
+    schema: GetOutgoingLinksSchema,
+    category: 'Graph',
+    alwaysLoaded: true,
   });
 
   // Must be called AFTER all register() calls (Pitfall 6: enableAll reads current Map state)
