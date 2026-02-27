@@ -77,9 +77,9 @@ Claude can reliably read, write, organize, and navigate Obsidian notes through a
 - Build: `tsup` ESM build; pre-commit hook runs tsc + vitest + build
 - Two handler modules: `handlers.ts` (core tools) and `handlers2.ts` (later tools — less test coverage)
 - Platform support: Windows native, WSL2, Linux
-- Rate limiter is currently instantiated per-call inside `handleToolCall` — must become a module-level singleton
+- Rate limiter: fixed as module-level singleton in Phase 1 (was per-call, now persists across calls)
 - Existing remark wikilink pipeline in `readNote` can be reused for new link tools
-- `gray-matter` (`matter.stringify`) is already used in `markdown-parser.ts` for frontmatter — must be used in all write paths
+- `gray-matter` (`matter.stringify`) used for frontmatter in all write paths (standardized in Phase 1)
 
 ## Constraints
 
@@ -92,12 +92,12 @@ Claude can reliably read, write, organize, and navigate Obsidian notes through a
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Rate limiter: module-level singleton | Per-call instantiation defeats rate limiting | — Pending |
-| MCP modernization: additive rollout | Keep backward compat with older clients | — Pending |
+| Rate limiter: module-level singleton | Per-call instantiation defeats rate limiting | Done (Phase 1) |
+| MCP modernization: additive rollout | Keep backward compat with older clients | Done (Phase 1) |
 | Lazy loading: config-gated (default true) | Preserve existing behavior for users who rely on full tool list | — Pending |
-| `matter.stringify` as canonical frontmatter serializer | Eliminate two-path inconsistency in create_note | — Pending |
-| `get_daily_note` normalizes to `path` field | One stable output contract across branches | — Pending |
+| `matter.stringify` as canonical frontmatter serializer | Eliminate two-path inconsistency in create_note | Done (Phase 1) |
+| `get_daily_note` normalizes to `path` field | One stable output contract across branches | Done (Phase 1) |
 | `get_link_graph` full vs traversal modes explicit | Resolves F-MED-04 spec ambiguity | — Pending |
 
 ---
-*Last updated: 2026-02-26 after initialization*
+*Last updated: 2026-02-27 after Phase 1 completion*

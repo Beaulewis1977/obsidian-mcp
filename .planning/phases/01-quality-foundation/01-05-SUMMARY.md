@@ -124,8 +124,8 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-- Phase 1 complete: all 5 plans executed, pre-commit gate clean, 94 tests passing
-- Phase 2 (MCP Spec Compliance) can begin; test infrastructure is solid
+- Phase 1 complete: all 5 plans executed, pre-commit gate clean, 97 tests passing
+- Phase 2 (Registry + Link Tools) can begin; test infrastructure is solid
 - Any regression in any of the 13 handlers is now caught before commit
 
 ---

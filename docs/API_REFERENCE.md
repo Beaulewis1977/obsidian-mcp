@@ -234,7 +234,7 @@ Search vault content using Obsidian's search or filesystem grep.
 
 ### `move_note`
 
-Move or rename a note (emulated via copy + delete).
+Move or rename a note (filesystem rename/move).
 
 **Input:**
 ```typescript

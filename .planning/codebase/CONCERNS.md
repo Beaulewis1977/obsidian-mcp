@@ -22,11 +22,11 @@
 - Impact: Debug output pollutes test runs and might confuse CI logs
 - Fix approach: Remove all console.log statements from tests. Use vitest debug utilities if logging is needed for test development
 
-**Missing Rate Limiter Redis Client Implementation:**
-- Issue: `src/utils/rate-limiter.ts` line 67 calls `this.createRedisClient()` but method is not shown in partial file read
+**Redis Client Is a Stub — Not Production-Ready:**
+- Issue: `createRedisClient()` exists in `src/utils/rate-limiter.ts` (around line 107) but is a stub — it throws `'Redis backend not implemented yet. Use memory backend for development.'`
 - Files: `src/utils/rate-limiter.ts`
-- Impact: Redis backend configuration appears to be incomplete - unclear if Redis client factory actually exists
-- Fix approach: Verify Redis client initialization is properly implemented with connection pooling and error handling
+- Impact: Enabling `backend: 'redis'` in config will cause the rate limiter to throw at startup. The current in-memory backend is the only working option.
+- Fix approach: Implement `createRedisClient()` with proper connection pooling, reconnection logic, and error recovery before enabling Redis in production.
 
 ## Security Considerations
 
@@ -192,7 +192,7 @@
 
 **Integration Tests for API Fallback:**
 - What's not tested: Behavior when Obsidian API is unavailable and server falls back to filesystem
-- Files: `src/tools/__tests__/handlers.integration.test.ts` (mocks are not testing real fallback paths)
+- Files: `src/tools/__tests__/handlers2.integration.test.ts` (mocks are not testing real fallback paths)
 - Risk: Fallback logic could fail in production without warning
 - Priority: High
 

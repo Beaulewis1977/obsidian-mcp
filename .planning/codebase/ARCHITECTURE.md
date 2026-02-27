@@ -82,10 +82,9 @@ This is a Model Context Protocol (MCP) server that exposes Obsidian vault operat
 3. Rate limiter checks allowance for operation (global, operation-type, and tool-specific limits)
 4. Tool handler (handlers.ts) receives validated input via Zod schema
 5. `getVault()` resolves vault from name or default
-6. **Attempt 1 (API):** If Obsidian API enabled and available, fetch note via `ObsidianAPIClient`
-7. **Attempt 2 (Filesystem):** Read note via `readNote()` from filesystem
-8. `parseMarkdown()` extracts frontmatter (gray-matter), content, and wiki/markdown links (remark)
-9. Response formatted and returned to client
+6. Read note via `readNote()` from filesystem (read tools are filesystem-only — no API attempt)
+7. `parseMarkdown()` extracts frontmatter (gray-matter), content, and wiki/markdown links (remark)
+8. Response formatted and returned to client
 
 **Tool Execution (Write):**
 
