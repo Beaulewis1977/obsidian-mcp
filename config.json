@@ -2,7 +2,7 @@
   "version": "1.0",
   "vaults": [
     {
-      "name": "Obsidian",
+      "name": "recipes",
       "path": "D:\\obsidian\\Obsidian\\Recipe",
       "default": true,
       "obsidian_api": {
@@ -13,8 +13,30 @@
       }
     },
     {
-      "name": "Obsidian-wsl",
+      "name": "project-notes",
+      "path": "D:\\obsidian\\Obsidian\\project-notes",
+      "default": false,
+      "obsidian_api": {
+        "enabled": true,
+        "url": "http://127.0.0.1:27123",
+        "verify_ssl": false,
+        "api_key": "${OBSIDIAN_API_KEY}"
+      }
+    },
+    {
+      "name": "recipes-wsl",
       "path": "/mnt/d/obsidian/Obsidian/Recipe",
+      "default": false,
+      "obsidian_api": {
+        "enabled": true,
+        "url": "http://127.0.0.1:27123",
+        "verify_ssl": false,
+        "api_key": "${OBSIDIAN_API_KEY}"
+      }
+    },
+    {
+      "name": "project-notes-wsl",
+      "path": "/mnt/d/obsidian/Obsidian/project-notes",
       "default": false,
       "obsidian_api": {
         "enabled": true,
