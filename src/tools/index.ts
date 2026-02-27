@@ -114,7 +114,9 @@ export function getToolDefinitions(): ToolDefinition[] {
         properties: {
           success: { type: 'boolean' },
           path: { type: 'string' },
-          method: { type: 'string' },
+          method: { type: 'string', enum: ['api', 'filesystem'] },
+          mode: { type: 'string', enum: ['append', 'prepend', 'replace', 'heading'] },
+          warning: { type: 'string' },
           fallback_reason: { type: 'string' },
           api_metadata: { type: 'object' },
           error: { type: 'string' }
@@ -151,8 +153,7 @@ export function getToolDefinitions(): ToolDefinition[] {
         properties: {
           notes: { type: 'array', items: { type: 'object' } },
           total: { type: 'number' },
-          folder: { type: 'string' },
-          filter: { type: 'object' },
+          vault: { type: 'string' },
           error: { type: 'string' }
         },
         required: ['notes', 'total']

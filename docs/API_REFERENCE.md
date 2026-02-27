@@ -258,7 +258,7 @@ Move or rename a note (emulated via copy + delete).
 
 **Notes:**
 - **Filesystem only** — Obsidian REST API has no move/rename endpoint
-- Implemented as filesystem copy to target path + delete of source path
+- Implemented as a filesystem rename/move (`fs.rename`) — atomic on same-volume moves
 - Does NOT update wikilinks automatically
 - Link-safe rename is a Post-MVP feature
 
