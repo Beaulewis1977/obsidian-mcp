@@ -29,8 +29,9 @@ import {
   handleGetVaultStats,
 } from '../handlers2.js';
 
-// Import handleToolCall for rate limiter behavioral test
-import { handleToolCall, _resetRateLimiterForTests } from '../index.js';
+// Import buildRegistry + rate-limiter helpers for behavioral test
+import { buildRegistry, getRateLimiter, _resetRateLimiterForTests } from '../index.js';
+import { ERROR_CODES } from '../../types/index.js';
 
 // Import mocked dependencies
 import { readNote, listNotes, noteExists } from '../../filesystem/vault-reader.js';
@@ -441,11 +442,35 @@ describe('handlers2 Integration Tests', () => {
       // Mock createFolder so the handler itself succeeds when allowed through
       mockCreateFolder.mockResolvedValue(undefined);
 
-      const call = () =>
-        handleToolCall(rateLimitedConfig as any, 'create_folder', {
+      const registry = buildRegistry();
+
+      // Mirrors the rate-limiting logic in src/index.ts CallToolRequestSchema handler
+      const call = async () => {
+        const rateLimiter = getRateLimiter(rateLimitedConfig as any);
+        if (rateLimiter) {
+          const rateLimitResult = await rateLimiter.checkRateLimit('create_folder', 'test');
+          if (!rateLimitResult.allowed) {
+            if (rateLimitResult.response) return rateLimitResult.response;
+            const rateLimitPayload = {
+              error: 'Rate limit exceeded',
+              details: rateLimitResult.warning || 'Too many requests in the current time window',
+              code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
+              waitTime: rateLimitResult.waitTime,
+              suggestion: 'Please wait before making more requests'
+            };
+            return {
+              content: [{ type: 'text' as const, text: JSON.stringify(rateLimitPayload, null, 2) }],
+              structuredContent: rateLimitPayload as Record<string, unknown>,
+              isError: true
+            };
+          }
+        }
+        const result = await registry.dispatch(rateLimitedConfig as any, 'create_folder', {
           vault: 'test',
           path: 'rate-limit-test',
         });
+        return result!;
+      };
 
       const result1 = await call();
       const result2 = await call();
