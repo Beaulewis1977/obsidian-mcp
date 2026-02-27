@@ -47,7 +47,12 @@ Plans:
   2. `get_link_graph` returns a directed graph of all vault notes with nodes, edges, and stats; `find_orphans` returns notes with no incoming and no outgoing links
   3. `search_tags` returns all tags used in the vault with per-tag usage counts; `get_outgoing_links` returns all wikilinks from a specified note
   4. The pre-commit hook passes clean; all 4 new tools have success + failure integration tests
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — ToolRegistry class + buildRegistry() factory + dispatch migration from switch to registry
+- [ ] 02-02-PLAN.md — Link graph utility + 4 new link/graph tool handlers + Zod schemas + registry registration
+- [ ] 02-03-PLAN.md — Integration tests for all 4 link tools + full pre-commit gate verification
 
 ### Phase 3: Lazy Loading
 **Goal**: Clients that start a session receive only `discover_tools` and `enable_tool` by default, reducing LLM context overhead from ~12,000 to ~1,000 tokens; clients that need the old behavior can set `lazy_loading: false`
@@ -79,6 +84,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Quality Foundation | 5/5 | Complete | 2026-02-27 |
-| 2. Registry + Link Tools | 0/TBD | Not started | - |
+| 2. Registry + Link Tools | 0/3 | Not started | - |
 | 3. Lazy Loading | 0/TBD | Not started | - |
 | 4. Extended Tools + Polish | 0/TBD | Not started | - |
