@@ -2,8 +2,8 @@
   "version": "1.0",
   "vaults": [
     {
-      "name": "Obsidian",
-      "path": "D:\\obsidian\\Obsidian\\Recipe",
+      "name": "recipes",
+      "path": "/mnt/d/obsidian/Obsidian/Recipe",
       "default": true,
       "obsidian_api": {
         "enabled": true,
@@ -13,8 +13,8 @@
       }
     },
     {
-      "name": "Obsidian-wsl",
-      "path": "/mnt/d/obsidian/Obsidian/Recipe",
+      "name": "project-notes",
+      "path": "/mnt/d/obsidian/Obsidian/project-notes",
       "default": false,
       "obsidian_api": {
         "enabled": true,
