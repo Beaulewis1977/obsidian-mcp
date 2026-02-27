@@ -13,10 +13,10 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 
 ### Bug Fixes
 
-- [ ] **BUG-01**: Rate limiter is a process-level singleton — calling 2× the per-minute limit is correctly rejected (F-CRIT-01)
-- [ ] **BUG-02**: `open_in_obsidian` works on native Windows without requiring `which` or `command -v` (F-CRIT-02)
-- [ ] **BUG-03**: `create_note` uses `matter.stringify` with js-yaml JSON_SCHEMA for frontmatter serialization — no manual string interpolation, no date corruption (F-MED-01)
-- [ ] **BUG-04**: `get_daily_note` returns `path` field consistently across all code branches (F-MED-02)
+- [x] **BUG-01**: Rate limiter is a process-level singleton — calling 2× the per-minute limit is correctly rejected (F-CRIT-01)
+- [x] **BUG-02**: `open_in_obsidian` works on native Windows without requiring `which` or `command -v` (F-CRIT-02)
+- [x] **BUG-03**: `create_note` uses `matter.stringify` with js-yaml JSON_SCHEMA for frontmatter serialization — no manual string interpolation, no date corruption (F-MED-01)
+- [x] **BUG-04**: `get_daily_note` returns `path` field consistently across all code branches (F-MED-02)
 
 ### MCP Spec Modernization
 
@@ -108,10 +108,10 @@ Roadmap created 2026-02-26. All 35 v1 requirements mapped across 4 phases.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SDK-01 | Phase 1 | Pending |
-| BUG-01 | Phase 1 | Pending |
-| BUG-02 | Phase 1 | Pending |
-| BUG-03 | Phase 1 | Pending |
-| BUG-04 | Phase 1 | Pending |
+| BUG-01 | Phase 1 | Complete |
+| BUG-02 | Phase 1 | Complete |
+| BUG-03 | Phase 1 | Complete |
+| BUG-04 | Phase 1 | Complete |
 | SPEC-01 | Phase 1 | Pending |
 | SPEC-02 | Phase 1 | Pending |
 | SPEC-03 | Phase 1 | Pending |
