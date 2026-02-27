@@ -60,10 +60,10 @@ Comparing against the original requirements (`obsidian_mcp_requirements.md`), th
 
 ### Token Footprint Estimate (Current)
 
-At ~400-500 tokens per tool definition:
+At ~400-500 tokens per tool definition (24 total: 13 existing + 2 meta-tools + 9 new feature tools):
 - **Current (13 tools)**: ~5,500-6,500 tokens
-- **After expansion (~20 tools)**: ~8,500-10,000 tokens
-- **With lazy loading**: ~1,000-1,500 tokens (2 meta-tools always loaded)
+- **After expansion (24 tools)**: ~10,000-12,000 tokens
+- **With lazy loading**: ~800-1,000 tokens (2 meta-tools always loaded)
 
 ---
 
@@ -629,7 +629,7 @@ Every tool must define an `outputSchema` so clients can validate and parse respo
 
 ### Why
 
-After this expansion, the server will have **18-23 tools**. At ~400-500 tokens per tool, that's **8,000-11,500 tokens** consumed before any conversation starts.
+After this expansion, the server will have **24 tools** (13 existing + 2 meta-tools + 9 new feature tools). At ~400-500 tokens per tool, that's **~10,000-12,000 tokens** consumed before any conversation starts.
 
 With lazy loading, only **2 meta-tools** are loaded initially (~800-1,000 tokens). Remaining tools load on demand. **Estimated savings: 80-85%**.
 
@@ -699,7 +699,7 @@ Always loaded. Enables a discovered tool, dynamically registering it so its full
 
 #### Implementation Flow
 
-```
+```text
 Client connects
   │
   ├─ ListTools → returns only: discover_tools, enable_tool
