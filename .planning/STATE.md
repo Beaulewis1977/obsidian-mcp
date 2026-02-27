@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-02-27T22:35:31Z"
+last_updated: "2026-02-27T22:43:00Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Claude can reliably read, write, organize, and navigate Obsidian notes through a spec-compliant, efficient MCP interface.
-**Current focus:** Phase 2 complete — ToolRegistry + 4 link/graph tools done; Phase 3 lazy loading is next
+**Current focus:** Phase 2 fully complete — ToolRegistry + 4 link/graph tools + integration tests done; Phase 3 lazy loading is next
 
 ## Current Position
 
 Phase: 2 of 4 (Registry + Link Tools) — COMPLETE
-Plan: 2 of 2 completed in current phase (02-01 + 02-02 complete)
-Status: Phase 2 complete — ToolRegistry (17 tools), get_link_graph/find_orphans/search_tags/get_outgoing_links all registered
-Last activity: 2026-02-27 — Plan 02-02 complete (4 link/graph tools: link-graph utility, handlers-link.ts, 17 tool registrations)
+Plan: 3 of 3 completed in current phase (02-01 + 02-02 + 02-03 complete)
+Status: Phase 2 complete — ToolRegistry (17 tools), 4 link/graph tools, 115 tests passing, pre-commit gate clean
+Last activity: 2026-02-27 — Plan 02-03 complete (18 integration tests for link handlers, full pre-commit gate verified)
 
-Progress: [████░░░░░░] 35% (7/20 total plans across 4 phases estimated)
+Progress: [████░░░░░░] 40% (8/20 total plans across 4 phases estimated)
 
 ## Performance Metrics
 
@@ -41,10 +41,10 @@ Progress: [████░░░░░░] 35% (7/20 total plans across 4 phases
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-quality-foundation | 5 | 60 min | 12 min |
-| 02-registry-link-tools | 2 | 7 min | 3.5 min |
+| 02-registry-link-tools | 3 | 12 min | 4 min |
 
 **Recent Trend:**
-- Last 7 plans: 35m, 7m, 5m, 5m, 8m, 4m, 3m
+- Last 8 plans: 35m, 7m, 5m, 5m, 8m, 4m, 3m, 5m
 - Trend: fast (additive pattern implementation)
 
 *Updated after each plan completion*
@@ -81,6 +81,7 @@ Recent decisions affecting current work:
 - [02-02]: buildVaultGraph uses sequential for...of reads, not Promise.all — avoids opening 1000+ file handles simultaneously on large vaults
 - [02-02]: nameToPath shortest-path-wins: sort notes by path.length ascending before building basename lookup Map
 - [02-02]: handleGetLinkGraph folder filter: scoped listNotes call but full-vault nameToPath for cross-folder link resolution correctness
+- [Phase 02]: 18 integration tests cover all 4 link handlers — buildVaultGraph only creates edges for resolved vault notes (image.png embed is correctly absent from edges)
 
 ### Pending Todos
 
@@ -94,5 +95,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 02-02-PLAN.md (4 link/graph tools: link-graph utility, handlers-link.ts, 4 schema additions, 17 tool registrations — 4 files modified, 2 task commits)
+Stopped at: Completed 02-03-PLAN.md (18 integration tests for 4 link handlers, pre-commit gate clean: 115 tests pass, tsc exits 0, tsup builds — 1 file created)
 Resume file: None

@@ -122,10 +122,10 @@ Roadmap created 2026-02-26. All 34 v1 requirements mapped across 4 phases.
 | REGX-01 | Phase 2 | Complete |
 | REGX-02 | Phase 2 | Complete |
 | REGX-03 | Phase 2 | Complete |
-| LINK-01 | Phase 2 | Pending |
-| LINK-02 | Phase 2 | Pending |
-| LINK-03 | Phase 2 | Pending |
-| LINK-04 | Phase 2 | Pending |
+| LINK-01 | Phase 2 | Complete |
+| LINK-02 | Phase 2 | Complete |
+| LINK-03 | Phase 2 | Complete |
+| LINK-04 | Phase 2 | Complete |
 | LAZY-01 | Phase 3 | Pending |
 | LAZY-02 | Phase 3 | Pending |
 | LAZY-03 | Phase 3 | Pending |
