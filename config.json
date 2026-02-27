@@ -2,7 +2,7 @@
   "version": "1.0",
   "vaults": [
     {
-      "name": "Obsidian",
+      "name": "recipes",
       "path": "${VAULT_PATH}",
       "default": true,
       "obsidian_api": {
@@ -13,7 +13,7 @@
       }
     },
     {
-      "name": "Obsidian-wsl",
+      "name": "project-notes",
       "path": "${VAULT_PATH_2}",
       "default": false,
       "obsidian_api": {

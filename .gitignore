@@ -50,3 +50,4 @@ playwright-report/
 # yarn.lock
 # pnpm-lock.yaml
 
+config.json
