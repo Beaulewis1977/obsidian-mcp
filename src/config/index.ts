@@ -124,9 +124,10 @@ export async function loadConfig(): Promise<ServerConfig> {
         }
       };
       
-      // Substitute environment variables in API keys
+      // Substitute environment variables in vault paths and API keys
       mergedConfig.vaults = mergedConfig.vaults.map(vault => ({
         ...vault,
+        path: substituteEnvVar(vault.path),
         obsidian_api: vault.obsidian_api ? {
           ...vault.obsidian_api,
           api_key: substituteEnvVar(vault.obsidian_api.api_key || '')

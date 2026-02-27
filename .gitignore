@@ -24,6 +24,7 @@ coverage/
 # IDE
 .vscode/
 .idea/
+.serena/
 *.swp
 *.swo
 *~
@@ -49,3 +50,4 @@ playwright-report/
 # yarn.lock
 # pnpm-lock.yaml
 
+config.json

@@ -84,6 +84,16 @@ export interface ToolInfo {
   riskLevel: 'low' | 'medium' | 'high'; // For additional classification
 }
 
+/**
+ * MCP 2025-11-25 tool annotations — behavior hints for clients
+ */
+export interface ToolAnnotations {
+  readOnlyHint?: boolean;     // Tool does not modify state
+  destructiveHint?: boolean;  // Tool may delete or overwrite data
+  idempotentHint?: boolean;   // Repeated calls with same args produce same result
+  openWorldHint?: boolean;    // Tool may interact with external systems
+}
+
 export interface FileWatchingConfig {
   enabled: boolean;
   polling?: {
@@ -106,6 +116,8 @@ export interface ServerConfig {
     backup_on_delete?: boolean;
     advisory_locking?: boolean;
   };
+  lazy_loading?: boolean;           // When true (Phase 3 default), only meta-tools at session start
+  always_loaded_tools?: string[];   // Tool names always enabled regardless of lazy_loading setting
 }
 
 export interface Note {

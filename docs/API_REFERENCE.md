@@ -209,7 +209,7 @@ Search vault content using Obsidian's search or filesystem grep.
 {
   query: string;                   // Search query (supports Obsidian syntax)
   vault?: string;
-  mode?: "obsidian" | "filesystem"; // Default: "obsidian"
+  mode?: "obsidian" | "filesystem"; // Default: "filesystem" (falls back to filesystem if Obsidian API is unavailable)
 }
 ```
 
@@ -234,7 +234,7 @@ Search vault content using Obsidian's search or filesystem grep.
 
 ### `move_note`
 
-Move or rename a note (emulated via copy + delete).
+Move or rename a note (filesystem rename/move).
 
 **Input:**
 ```typescript
@@ -257,7 +257,8 @@ Move or rename a note (emulated via copy + delete).
 ```
 
 **Notes:**
-- Emulated via `PUT` (new path) + `DELETE` (old path)
+- **Filesystem only** — Obsidian REST API has no move/rename endpoint
+- Implemented as a filesystem rename/move (`fs.rename`) — atomic on same-volume moves
 - Does NOT update wikilinks automatically
 - Link-safe rename is a Post-MVP feature
 
@@ -285,6 +286,9 @@ Update specific frontmatter fields without modifying content.
   frontmatter: Record<string, any>; // Updated frontmatter
 }
 ```
+
+**Notes:**
+- **Filesystem only** — Uses read-modify-write via `gray-matter` (no frontmatter endpoint in Obsidian REST API)
 
 ---
 
@@ -324,6 +328,15 @@ Get or create daily note for specified date.
 | Delete | DELETE | `/vault/{path}` | Remove note |
 | Open | POST | `/open/{filename}` | Open in Obsidian |
 | Search | GET | `/search/` | Query vault |
+
+### Write-Path Exceptions
+
+Most write operations prefer the Obsidian REST API when available and fall back to the filesystem. The following tools are **filesystem-only** and never use the API:
+
+**Exceptions:**
+- `move_note` — filesystem only (no move/rename endpoint in Obsidian REST API)
+- `update_frontmatter` — filesystem only (read-modify-write using `gray-matter`)
+- `create_folder` — filesystem only (no folder-creation endpoint in Obsidian REST API)
 
 ### PATCH Headers (v3+)
 

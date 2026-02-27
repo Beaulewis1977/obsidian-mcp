@@ -6,9 +6,9 @@ The Obsidian MCP Server is a Model Context Protocol server that enables AI assis
 
 ## Core Principles
 
-1. **API-First for Writes:** All write operations (create, edit, delete) prioritize the Obsidian REST API to maintain app cache consistency
+1. **API-First for Most Writes:** Write operations (create, edit, delete) prioritize the Obsidian REST API to maintain app cache consistency. Exceptions: `move_note`, `update_frontmatter`, and `create_folder` are filesystem-only operations.
 2. **Filesystem for Reads:** Read operations use direct filesystem access for speed and reliability
-3. **Graceful Fallback:** When API is unavailable, filesystem operations provide continuity
+3. **Graceful Fallback:** When API is unavailable, API-capable operations fall back to filesystem. `open_in_obsidian` falls back from app spawn to URI protocol.
 4. **Cross-Platform:** Seamless operation on Windows native and WSL environments
 5. **Security-First:** Path validation, API key protection, and safe defaults
 
@@ -253,7 +253,7 @@ All path inputs are validated to prevent traversal attacks:
 
 - **Runtime:** Node.js 18+
 - **Language:** TypeScript with strict mode
-- **MCP SDK:** `@modelcontextprotocol/sdk` v0.6+
+- **MCP SDK:** `@modelcontextprotocol/sdk` v1.27.1
 - **Markdown:** gray-matter, remark, unified
 - **File Watching:** chokidar
 - **Logging:** pino

@@ -3,10 +3,10 @@
   "vaults": [
     {
       "name": "recipes",
-      "path": "/mnt/d/obsidian/Obsidian/Recipe",
+      "path": "${VAULT_PATH}",
       "default": true,
       "obsidian_api": {
-        "enabled": true,
+        "enabled": false,
         "url": "http://127.0.0.1:27123",
         "verify_ssl": false,
         "api_key": "${OBSIDIAN_API_KEY}"
@@ -14,10 +14,10 @@
     },
     {
       "name": "project-notes",
-      "path": "/mnt/d/obsidian/Obsidian/project-notes",
+      "path": "${VAULT_PATH_2}",
       "default": false,
       "obsidian_api": {
-        "enabled": true,
+        "enabled": false,
         "url": "http://127.0.0.1:27123",
         "verify_ssl": false,
         "api_key": "${OBSIDIAN_API_KEY}"
