@@ -94,18 +94,20 @@ export async function handleMoveNote(
     
     // Move via filesystem (API doesn't have a move endpoint)
     await fsMoveNote(vault.path, sourcePath, targetPath);
-    
+
+    const payload = {
+      success: true,
+      source_path: sourcePath,
+      target_path: targetPath,
+      warning: '⚠️ Note moved successfully. WARNING: Wikilinks to this note have NOT been automatically updated. You may need to update links in other notes manually or use Obsidian\'s "Update internal links" command.',
+      suggestion: 'Open Obsidian and use Command Palette → "Update internal links" to fix broken links.'
+    };
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          success: true,
-          source_path: sourcePath,
-          target_path: targetPath,
-          warning: '⚠️ Note moved successfully. WARNING: Wikilinks to this note have NOT been automatically updated. You may need to update links in other notes manually or use Obsidian\'s "Update internal links" command.',
-          suggestion: 'Open Obsidian and use Command Palette → "Update internal links" to fix broken links.'
-        }, null, 2)
-      }]
+        text: JSON.stringify(payload, null, 2)
+      }],
+      structuredContent: payload as Record<string, unknown>
     };
   } catch (error: any) {
     logger.error({ error, input }, 'Failed to move note');
@@ -155,16 +157,18 @@ export async function handleUpdateFrontmatter(
     // Write note
     await writeNote(vault.path, notePath, note);
     
+    const payload = {
+      success: true,
+      path: notePath,
+      frontmatter: note.frontmatter,
+      merged: input.merge
+    };
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          success: true,
-          path: notePath,
-          frontmatter: note.frontmatter,
-          merged: input.merge
-        }, null, 2)
-      }]
+        text: JSON.stringify(payload, null, 2)
+      }],
+      structuredContent: payload as Record<string, unknown>
     };
   } catch (error: any) {
     logger.error({ error, input }, 'Failed to update frontmatter');
@@ -219,15 +223,13 @@ export async function handleGetDailyNote(
     
     if (exists) {
       const note = await readNote(vault.path, notePath);
+      const payload = { ...note, path: notePath, created: false };
       return {
         content: [{
           type: 'text',
-          text: JSON.stringify({
-            ...note,
-            path: notePath,
-            created: false
-          }, null, 2)
-        }]
+          text: JSON.stringify(payload, null, 2)
+        }],
+        structuredContent: payload as Record<string, unknown>
       };
     }
     
@@ -246,16 +248,14 @@ export async function handleGetDailyNote(
       };
       
       await writeNote(vault.path, notePath, note);
-      
+
+      const payload = { ...note, path: notePath, created: true };
       return {
         content: [{
           type: 'text',
-          text: JSON.stringify({
-            path: notePath,
-            created: true,
-            ...note
-          }, null, 2)
-        }]
+          text: JSON.stringify(payload, null, 2)
+        }],
+        structuredContent: payload as Record<string, unknown>
       };
     }
     
@@ -324,16 +324,18 @@ export async function handleOpenInObsidian(
       if (apiClient && await apiClient.checkAvailability()) {
         try {
           apiMetadata = await apiClient.openNote(notePath);
+          const apiPayload = {
+            success: true,
+            method: 'api',
+            path: notePath,
+            api_metadata: apiMetadata
+          };
           return {
             content: [{
               type: 'text',
-              text: JSON.stringify({
-                success: true,
-                method: 'api',
-                path: notePath,
-                api_metadata: apiMetadata
-              }, null, 2)
-            }]
+              text: JSON.stringify(apiPayload, null, 2)
+            }],
+            structuredContent: apiPayload as Record<string, unknown>
           };
         } catch (error) {
           logger.warn({ error }, 'API open failed, trying URI protocol');
@@ -344,32 +346,36 @@ export async function handleOpenInObsidian(
       // Fallback to URI protocol
       const uri = `obsidian://open?vault=${encodeURIComponent(vault.name)}&file=${encodeURIComponent(notePath)}`;
       await openURI(uri);
-      
+
+      const uriPayload = {
+        success: true,
+        method: 'uri',
+        path: notePath,
+        fallback_reason: fallbackReason,
+        api_metadata: apiMetadata
+      };
       return {
         content: [{
           type: 'text',
-          text: JSON.stringify({
-            success: true,
-            method: 'uri',
-            path: notePath,
-            fallback_reason: fallbackReason,
-            api_metadata: apiMetadata
-          }, null, 2)
-        }]
+          text: JSON.stringify(uriPayload, null, 2)
+        }],
+        structuredContent: uriPayload as Record<string, unknown>
       };
     } else {
       // Open vault
       await platformOpenInObsidian(vault.path);
-      
+
+      const vaultPayload = {
+        success: true,
+        method: 'app',
+        vault: vault.name
+      };
       return {
         content: [{
           type: 'text',
-          text: JSON.stringify({
-            success: true,
-            method: 'app',
-            vault: vault.name
-          }, null, 2)
-        }]
+          text: JSON.stringify(vaultPayload, null, 2)
+        }],
+        structuredContent: vaultPayload as Record<string, unknown>
       };
     }
   } catch (error: any) {
@@ -424,15 +430,17 @@ export async function handleGetBacklinks(
       }
     }
     
+    const payload = {
+      target: notePath,
+      backlinks,
+      total: backlinks.length
+    };
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          target: notePath,
-          backlinks,
-          total: backlinks.length
-        }, null, 2)
-      }]
+        text: JSON.stringify(payload, null, 2)
+      }],
+      structuredContent: payload as Record<string, unknown>
     };
   } catch (error: any) {
     logger.error({ error, input }, 'Failed to get backlinks');
@@ -466,15 +474,17 @@ export async function handleCreateFolder(
     }
     
     await fsCreateFolder(vault.path, input.path);
-    
+
+    const payload = {
+      success: true,
+      path: input.path
+    };
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          success: true,
-          path: input.path
-        }, null, 2)
-      }]
+        text: JSON.stringify(payload, null, 2)
+      }],
+      structuredContent: payload as Record<string, unknown>
     };
   } catch (error: any) {
     logger.error({ error, input }, 'Failed to create folder');
@@ -527,18 +537,20 @@ export async function handleGetVaultStats(
       }
     }
     
+    const payload = {
+      vault: vault.name,
+      note_count: notes.length,
+      total_size: totalSize,
+      unique_tags: tags.size,
+      total_links: linkCount,
+      tags: Array.from(tags).sort()
+    };
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          vault: vault.name,
-          note_count: notes.length,
-          total_size: totalSize,
-          unique_tags: tags.size,
-          total_links: linkCount,
-          tags: Array.from(tags).sort()
-        }, null, 2)
-      }]
+        text: JSON.stringify(payload, null, 2)
+      }],
+      structuredContent: payload as Record<string, unknown>
     };
   } catch (error: any) {
     logger.error({ error, input }, 'Failed to get vault stats');
