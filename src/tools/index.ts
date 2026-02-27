@@ -338,16 +338,20 @@ export async function handleToolCall(
         return rateLimitResult.response;
       }
 
-      // Return warning response if approaching limits
+      // Return error response when rate limit is exceeded
+      const rateLimitPayload = {
+        error: true,
+        message: rateLimitResult.warning || 'Rate limit exceeded',
+        waitTime: rateLimitResult.waitTime,
+        suggestion: 'Please wait before making more requests'
+      };
       return {
         content: [{
           type: 'text',
-          text: JSON.stringify({
-            warning: rateLimitResult.warning,
-            waitTime: rateLimitResult.waitTime,
-            suggestion: 'Please wait before making more requests'
-          }, null, 2)
-        }]
+          text: JSON.stringify(rateLimitPayload, null, 2)
+        }],
+        structuredContent: rateLimitPayload as Record<string, unknown>,
+        isError: true
       };
     }
   }
