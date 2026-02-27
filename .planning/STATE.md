@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-02-27T22:28:48Z"
+last_updated: "2026-02-27T22:35:31Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Claude can reliably read, write, organize, and navigate Obsidian notes through a spec-compliant, efficient MCP interface.
-**Current focus:** Phase 2 in-progress — ToolRegistry architecture complete, link tools next
+**Current focus:** Phase 2 complete — ToolRegistry + 4 link/graph tools done; Phase 3 lazy loading is next
 
 ## Current Position
 
-Phase: 2 of 4 (Registry + Link Tools) — IN PROGRESS
-Plan: 1 of N completed in current phase (02-01 complete)
-Status: Phase 2 started — ToolRegistry class + buildRegistry() factory done, dispatch migrated
-Last activity: 2026-02-27 — Plan 02-01 complete (ToolRegistry architecture: registry.ts created, dispatch migrated from switch to Map+Set)
+Phase: 2 of 4 (Registry + Link Tools) — COMPLETE
+Plan: 2 of 2 completed in current phase (02-01 + 02-02 complete)
+Status: Phase 2 complete — ToolRegistry (17 tools), get_link_graph/find_orphans/search_tags/get_outgoing_links all registered
+Last activity: 2026-02-27 — Plan 02-02 complete (4 link/graph tools: link-graph utility, handlers-link.ts, 17 tool registrations)
 
-Progress: [███░░░░░░░] 30% (6/20 total plans across 4 phases estimated)
+Progress: [████░░░░░░] 35% (7/20 total plans across 4 phases estimated)
 
 ## Performance Metrics
 
@@ -41,10 +41,10 @@ Progress: [███░░░░░░░] 30% (6/20 total plans across 4 phases
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-quality-foundation | 5 | 60 min | 12 min |
-| 02-registry-link-tools | 1 | 4 min | 4 min |
+| 02-registry-link-tools | 2 | 7 min | 3.5 min |
 
 **Recent Trend:**
-- Last 6 plans: 35m, 7m, 5m, 5m, 8m, 4m
+- Last 7 plans: 35m, 7m, 5m, 5m, 8m, 4m, 3m
 - Trend: fast (additive pattern implementation)
 
 *Updated after each plan completion*
@@ -77,6 +77,10 @@ Recent decisions affecting current work:
 - [02-01]: ToolRegistry as plain Map + Set — no event emitters, middleware, or DI; dispatch() returns null for unknown/disabled tools (caller converts to error response)
 - [02-01]: Rate limiting moved from handleToolCall to CallToolRequestSchema handler in src/index.ts — registry dispatch is routing-only
 - [02-01]: alwaysLoaded and category fields set on all 13 tools now for Phase 3 lazy loading compatibility; buildRegistry() calls enableAll() as final step after all register() calls
+- [02-02]: parseWikilinks uses regex NOT remark-wiki-link v2.0.1 — library stores [[Note|Alias]] as literal "Note|Alias" and ignores ![[embed]]; regex handles all 5 Obsidian formats correctly
+- [02-02]: buildVaultGraph uses sequential for...of reads, not Promise.all — avoids opening 1000+ file handles simultaneously on large vaults
+- [02-02]: nameToPath shortest-path-wins: sort notes by path.length ascending before building basename lookup Map
+- [02-02]: handleGetLinkGraph folder filter: scoped listNotes call but full-vault nameToPath for cross-folder link resolution correctness
 
 ### Pending Todos
 
@@ -90,5 +94,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 02-01-PLAN.md (ToolRegistry architecture: registry.ts created, buildRegistry() factory, dispatch migrated from switch to Map+Set — 4 files modified, 2 task commits)
+Stopped at: Completed 02-02-PLAN.md (4 link/graph tools: link-graph utility, handlers-link.ts, 4 schema additions, 17 tool registrations — 4 files modified, 2 task commits)
 Resume file: None

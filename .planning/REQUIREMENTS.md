@@ -39,10 +39,10 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 
 ### Link Graph Tools
 
-- [ ] **LINK-01**: `get_link_graph` — returns vault-wide directed graph (nodes as note paths, edges as wikilinks, graph stats)
-- [ ] **LINK-02**: `find_orphans` — returns notes with no incoming AND no outgoing links
-- [ ] **LINK-03**: `search_tags` — returns all tags used in the vault with usage counts per tag
-- [ ] **LINK-04**: `get_outgoing_links` — returns all wikilinks from a specific note (complement to existing `get_backlinks`)
+- [x] **LINK-01**: `get_link_graph` — returns vault-wide directed graph (nodes as note paths, edges as wikilinks, graph stats)
+- [x] **LINK-02**: `find_orphans` — returns notes with no incoming AND no outgoing links
+- [x] **LINK-03**: `search_tags` — returns all tags used in the vault with usage counts per tag
+- [x] **LINK-04**: `get_outgoing_links` — returns all wikilinks from a specific note (complement to existing `get_backlinks`)
 
 ### Lazy Loading
 

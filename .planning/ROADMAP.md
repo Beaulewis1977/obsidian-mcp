@@ -50,8 +50,8 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — ToolRegistry class + buildRegistry() factory + dispatch migration from switch to registry
-- [ ] 02-02-PLAN.md — Link graph utility + 4 new link/graph tool handlers + Zod schemas + registry registration
+- [x] 02-01-PLAN.md — ToolRegistry class + buildRegistry() factory + dispatch migration from switch to registry
+- [x] 02-02-PLAN.md — Link graph utility + 4 new link/graph tool handlers + Zod schemas + registry registration
 - [ ] 02-03-PLAN.md — Integration tests for all 4 link tools + full pre-commit gate verification
 
 ### Phase 3: Lazy Loading
@@ -84,6 +84,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Quality Foundation | 5/5 | Complete | 2026-02-27 |
-| 2. Registry + Link Tools | 1/3 | In Progress|  |
+| 2. Registry + Link Tools | 2/3 | In Progress|  |
 | 3. Lazy Loading | 0/TBD | Not started | - |
 | 4. Extended Tools + Polish | 0/TBD | Not started | - |
