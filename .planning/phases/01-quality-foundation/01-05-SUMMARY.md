@@ -67,7 +67,7 @@ completed: 2026-02-27
 - All 7 handlers tested: handleMoveNote, handleUpdateFrontmatter, handleGetDailyNote, handleOpenInObsidian, handleGetBacklinks, handleCreateFolder, handleGetVaultStats
 - structuredContent assertions on every success path confirm Plan 04's outputSchema/structuredContent work
 - Rate limiter behavioral test: 3rd call to `create_folder` with `global.requests_per_minute=2` returns `isError:true` with `RATE_LIMIT_EXCEEDED` — BUG-01 singleton fix verified at behavioral level
-- Pre-commit hook (tsc --noEmit + vitest --run + tsup) passes clean; total test suite 94 tests (0 failures)
+- Pre-commit hook (tsc --noEmit + vitest --run + tsup) passes clean; total test suite 97 tests (0 failures)
 
 ## Test Count by Handler
 

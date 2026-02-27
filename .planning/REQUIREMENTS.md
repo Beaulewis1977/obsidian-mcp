@@ -103,7 +103,7 @@ Deferred to Milestone 3+. Acknowledged but not in this roadmap.
 
 ## Traceability
 
-Roadmap created 2026-02-26. All 35 v1 requirements mapped across 4 phases.
+Roadmap created 2026-02-26. All 34 v1 requirements mapped across 4 phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -143,8 +143,8 @@ Roadmap created 2026-02-26. All 35 v1 requirements mapped across 4 phases.
 | PLSH-05 | Phase 4 | Pending |
 
 **Coverage:**
-- v1 requirements: 35 total
-- Mapped to phases: 35
+- v1 requirements: 34 total
+- Mapped to phases: 34
 - Unmapped: 0 ✓
 
 ---

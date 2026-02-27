@@ -34,6 +34,7 @@ import {
   handleGetVaultStats
 } from './handlers2.js';
 import type { ServerConfig, ToolResponse, ToolAnnotations } from '../types/index.js';
+import { ERROR_CODES } from '../types/index.js';
 
 // Module-level rate limiter singleton — persists for process lifetime
 let _rateLimiter: RateLimitManager | null = null;
@@ -338,10 +339,11 @@ export async function handleToolCall(
         return rateLimitResult.response;
       }
 
-      // Return error response when rate limit is exceeded
+      // Return error response when rate limit is exceeded (fallback when no pre-built response)
       const rateLimitPayload = {
-        error: true,
-        message: rateLimitResult.warning || 'Rate limit exceeded',
+        error: 'Rate limit exceeded',
+        details: rateLimitResult.warning || 'Too many requests in the current time window',
+        code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
         waitTime: rateLimitResult.waitTime,
         suggestion: 'Please wait before making more requests'
       };
