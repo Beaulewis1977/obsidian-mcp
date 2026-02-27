@@ -29,7 +29,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `open_in_obsidian` executes successfully on native Windows without invoking `which` or `command -v`
   4. All 13 tools emit `outputSchema`, `structuredContent`, and `annotations` fields; `get_daily_note` returns `path` consistently; `create_note` produces no date corruption in frontmatter
   5. `handlers2.ts` tools each have at least one integration test covering a success path and a failure path; the pre-commit hook (`tsc --noEmit` + `vitest --run` + `tsup`) passes clean
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — SDK upgrade to 1.27.1, extend ToolAnnotations + ServerConfig types, fix API docs drift
+- [ ] 01-02-PLAN.md — Fix all 4 bugs: rate limiter singleton, Windows exe detection, frontmatter serialization, get_daily_note path field
+- [ ] 01-03-PLAN.md — Add outputSchema + annotations to all 13 tool definitions
+- [ ] 01-04-PLAN.md — Add structuredContent to all 13 handler success responses
+- [ ] 01-05-PLAN.md — handlers2 integration test suite + full pre-commit gate verification
 
 ### Phase 2: Registry + Link Tools
 **Goal**: Static switch dispatch is replaced by a `ToolRegistry` class; four new link/graph tools are registered and usable; the architecture is validated and ready for lazy-loading wiring
@@ -71,7 +78,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Quality Foundation | 0/TBD | Not started | - |
+| 1. Quality Foundation | 0/5 | Not started | - |
 | 2. Registry + Link Tools | 0/TBD | Not started | - |
 | 3. Lazy Loading | 0/TBD | Not started | - |
 | 4. Extended Tools + Polish | 0/TBD | Not started | - |
