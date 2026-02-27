@@ -35,6 +35,17 @@ import {
 } from './handlers2.js';
 import type { ServerConfig, ToolResponse } from '../types/index.js';
 
+// Module-level rate limiter singleton — persists for process lifetime
+let _rateLimiter: RateLimitManager | null = null;
+
+function getRateLimiter(config: ServerConfig): RateLimitManager | null {
+  if (!config.rate_limiting?.enabled) return null;
+  if (!_rateLimiter) {
+    _rateLimiter = new RateLimitManager(config.rate_limiting);
+  }
+  return _rateLimiter;
+}
+
 /**
  * Tool definition
  */
@@ -125,10 +136,8 @@ export async function handleToolCall(
   toolName: string,
   args: any
 ): Promise<ToolResponse> {
-  // Initialize rate limiter if rate limiting is enabled
-  const rateLimiter = config.rate_limiting?.enabled
-    ? new RateLimitManager(config.rate_limiting)
-    : null;
+  // Get module-level rate limiter singleton (persists across calls)
+  const rateLimiter = getRateLimiter(config);
 
   // Check rate limits before processing
   if (rateLimiter) {
