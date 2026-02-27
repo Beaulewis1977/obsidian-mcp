@@ -74,7 +74,7 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 
-- `src/tools/__tests__/handlers-link.integration.test.ts` — 18 integration tests, 4 describe blocks, shared vault fixture with 4 notes and cross-link structure (454 lines)
+- `src/tools/__tests__/handlers-link.integration.test.ts` — 19 integration tests, 4 describe blocks, shared vault fixture with 4 notes and cross-link structure (480 lines)
 
 ## Decisions Made
 
@@ -84,7 +84,7 @@ Each task was committed atomically:
 
 ## Deviations from Plan
 
-None — plan executed exactly as written. All 18 tests pass on first attempt.
+None — plan executed exactly as written. All 19 tests pass on first attempt.
 
 ## Issues Encountered
 
