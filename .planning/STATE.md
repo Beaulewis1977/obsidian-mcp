@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-02-27T16:20:39.122Z"
+last_updated: "2026-02-27T22:28:48Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 6
+  completed_plans: 6
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Claude can reliably read, write, organize, and navigate Obsidian notes through a spec-compliant, efficient MCP interface.
-**Current focus:** Phase 1 complete — Phase 2 next
+**Current focus:** Phase 2 in-progress — ToolRegistry architecture complete, link tools next
 
 ## Current Position
 
-Phase: 1 of 4 (Quality Foundation) — COMPLETE
-Plan: 5 of 5 completed in current phase
-Status: Phase 1 complete — all 5 plans executed, pre-commit gate clean
-Last activity: 2026-02-27 — Plan 01-05 complete (16 integration tests for handlers2.ts + rate limiter behavioral test)
+Phase: 2 of 4 (Registry + Link Tools) — IN PROGRESS
+Plan: 1 of N completed in current phase (02-01 complete)
+Status: Phase 2 started — ToolRegistry class + buildRegistry() factory done, dispatch migrated
+Last activity: 2026-02-27 — Plan 02-01 complete (ToolRegistry architecture: registry.ts created, dispatch migrated from switch to Map+Set)
 
-Progress: [██░░░░░░░░] 25% (5/20 total plans across 4 phases estimated)
+Progress: [███░░░░░░░] 30% (6/20 total plans across 4 phases estimated)
 
 ## Performance Metrics
 
@@ -41,9 +41,10 @@ Progress: [██░░░░░░░░] 25% (5/20 total plans across 4 phases
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-quality-foundation | 5 | 60 min | 12 min |
+| 02-registry-link-tools | 1 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 35m, 7m, 5m, 5m, 8m
+- Last 6 plans: 35m, 7m, 5m, 5m, 8m, 4m
 - Trend: fast (additive pattern implementation)
 
 *Updated after each plan completion*
@@ -73,6 +74,9 @@ Recent decisions affecting current work:
 - [Phase 01]: handlers2.ts handleOpenInObsidian: named payload variables per branch (apiPayload, uriPayload, vaultPayload) to avoid variable shadowing across 3 success return paths
 - [01-05]: Rate limiter behavioral test uses handleToolCall from index.ts (not handler directly) — rate limiting is applied at dispatch level, handlers bypass it if called directly
 - [01-05]: Full RateLimitConfig structure required for behavioral test (limits.global/read/write, graceful) — simplified per_minute:2 shape does not match interface
+- [02-01]: ToolRegistry as plain Map + Set — no event emitters, middleware, or DI; dispatch() returns null for unknown/disabled tools (caller converts to error response)
+- [02-01]: Rate limiting moved from handleToolCall to CallToolRequestSchema handler in src/index.ts — registry dispatch is routing-only
+- [02-01]: alwaysLoaded and category fields set on all 13 tools now for Phase 3 lazy loading compatibility; buildRegistry() calls enableAll() as final step after all register() calls
 
 ### Pending Todos
 
@@ -86,5 +90,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 01-05-PLAN.md (16 integration tests for handlers2.ts tools + rate limiter behavioral test — 1 file created, 1 commit; Phase 1 complete)
+Stopped at: Completed 02-01-PLAN.md (ToolRegistry architecture: registry.ts created, buildRegistry() factory, dispatch migrated from switch to Map+Set — 4 files modified, 2 task commits)
 Resume file: None

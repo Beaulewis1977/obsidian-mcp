@@ -33,9 +33,9 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 
 ### Tool Registry Architecture
 
-- [ ] **REGX-01**: `ToolRegistry` class (`src/tools/registry.ts`) centralizes all tool registration using `Map<string, ToolRegistration>` + `Set<string>` of enabled names
-- [ ] **REGX-02**: Static switch dispatch in `handleToolCall` is replaced by registry dispatch
-- [ ] **REGX-03**: `buildRegistry()` factory in `src/tools/index.ts` replaces `getToolDefinitions()` + switch pattern
+- [x] **REGX-01**: `ToolRegistry` class (`src/tools/registry.ts`) centralizes all tool registration using `Map<string, ToolRegistration>` + `Set<string>` of enabled names
+- [x] **REGX-02**: Static switch dispatch in `handleToolCall` is replaced by registry dispatch
+- [x] **REGX-03**: `buildRegistry()` factory in `src/tools/index.ts` replaces `getToolDefinitions()` + switch pattern
 
 ### Link Graph Tools
 
@@ -119,9 +119,9 @@ Roadmap created 2026-02-26. All 34 v1 requirements mapped across 4 phases.
 | SPEC-05 | Phase 1 | Complete |
 | TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1–4 | Ongoing — Phase 1 complete, Phases 2–4 pending |
-| REGX-01 | Phase 2 | Pending |
-| REGX-02 | Phase 2 | Pending |
-| REGX-03 | Phase 2 | Pending |
+| REGX-01 | Phase 2 | Complete |
+| REGX-02 | Phase 2 | Complete |
+| REGX-03 | Phase 2 | Complete |
 | LINK-01 | Phase 2 | Pending |
 | LINK-02 | Phase 2 | Pending |
 | LINK-03 | Phase 2 | Pending |
