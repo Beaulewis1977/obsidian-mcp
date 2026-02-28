@@ -2,7 +2,7 @@
 
 /**
  * Obsidian MCP Server
- * 
+ *
  * A Model Context Protocol server for interacting with Obsidian vaults
  */
 
@@ -15,8 +15,9 @@ import {
 
 import { loadConfig } from './config/index.js';
 import { logger } from './utils/logger.js';
-import { getToolDefinitions, handleToolCall } from './tools/index.js';
+import { buildRegistry, getRateLimiter } from './tools/index.js';
 import { createErrorResponse } from './utils/errors.js';
+import { ERROR_CODES } from './types/index.js';
 import { detectPlatform } from './platform/detector.js';
 import { createVaultWatcher } from './filesystem/vault-watcher.js';
 
@@ -27,20 +28,23 @@ async function main() {
   try {
     // Detect platform
     const platform = detectPlatform();
-    
+
     // Load configuration
     const config = await loadConfig();
-    
+
     if (config.vaults.length === 0) {
       logger.error('No vaults configured. Please create a configuration file.');
       process.exit(1);
     }
-    
-    logger.info({ 
+
+    logger.info({
       vaults: config.vaults.map(v => ({ name: v.name, path: v.path })),
       platform: platform.platform
     }, 'Configuration loaded');
-    
+
+    // Build tool registry — registers and enables all 17 tools
+    const registry = buildRegistry();
+
     // Create MCP server
     const server = new Server(
       {
@@ -53,28 +57,55 @@ async function main() {
         },
       }
     );
-    
+
     // Register tool list handler
     server.setRequestHandler(ListToolsRequestSchema, async () => {
-      const tools = getToolDefinitions();
+      const tools = registry.getEnabledDefinitions();
       logger.debug({ toolCount: tools.length }, 'Tools listed');
       return { tools };
     });
-    
+
     // Register tool call handler
     server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
-      
+
       logger.info({ tool: name, args }, 'Tool called');
-      
+
       try {
-        const result = await handleToolCall(config, name, args || {});
+        // Rate limiting check (mirrors previous handleToolCall behaviour)
+        const rateLimiter = getRateLimiter(config);
+        if (rateLimiter) {
+          const vaultName = (args as any)?.vault || config.vaults.find(v => v.default)?.name;
+          const rateLimitResult = await rateLimiter.checkRateLimit(name, vaultName);
+
+          if (!rateLimitResult.allowed) {
+            if (rateLimitResult.response) return rateLimitResult.response;
+
+            const rateLimitPayload = {
+              error: 'Rate limit exceeded',
+              details: rateLimitResult.warning || 'Too many requests in the current time window',
+              code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
+              waitTime: rateLimitResult.waitTime,
+              suggestion: 'Please wait before making more requests'
+            };
+            return {
+              content: [{ type: 'text' as const, text: JSON.stringify(rateLimitPayload, null, 2) }],
+              structuredContent: rateLimitPayload as Record<string, unknown>,
+              isError: true
+            };
+          }
+        }
+
+        const result = await registry.dispatch(config, name, args || {});
+        if (result === null) {
+          return createErrorResponse('Unknown or disabled tool', `No tool registered: ${name}`, 'VALIDATION_ERROR');
+        }
+
         logger.debug({ tool: name, success: !result.isError }, 'Tool completed');
         return result;
       } catch (error: any) {
         logger.error({ error, tool: name }, 'Tool execution failed');
-        
-        // Handle validation errors
+
         if (error.name === 'ZodError') {
           return createErrorResponse(
             'Invalid input',
@@ -83,8 +114,7 @@ async function main() {
             'Check your input parameters against the tool schema.'
           );
         }
-        
-        // Handle other errors
+
         return createErrorResponse(
           'Tool execution failed',
           error.message,
@@ -92,7 +122,7 @@ async function main() {
         );
       }
     });
-    
+
     // Initialize vault watchers for enabled vaults
     const vaultWatchers: any[] = [];
     if (config.file_watching?.enabled) {
@@ -158,7 +188,7 @@ async function main() {
       await server.close();
       process.exit(0);
     });
-    
+
   } catch (error) {
     logger.error({ error }, 'Failed to start server');
     process.exit(1);

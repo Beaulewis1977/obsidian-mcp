@@ -1,7 +1,7 @@
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { RateLimitManager } from '../utils/rate-limiter.js';
-import { 
+import {
   ReadNoteSchema,
   CreateNoteSchema,
   EditNoteSchema,
@@ -14,7 +14,11 @@ import {
   OpenInObsidianSchema,
   GetBacklinksSchema,
   CreateFolderSchema,
-  GetVaultStatsSchema
+  GetVaultStatsSchema,
+  GetLinkGraphSchema,
+  FindOrphansSchema,
+  SearchTagsSchema,
+  GetOutgoingLinksSchema,
 } from './schemas.js';
 import {
   handleReadNote,
@@ -33,12 +37,23 @@ import {
   handleCreateFolder,
   handleGetVaultStats
 } from './handlers2.js';
-import { ERROR_CODES, type ServerConfig, type ToolResponse, type ToolAnnotations } from '../types/index.js';
+import {
+  handleGetLinkGraph,
+  handleFindOrphans,
+  handleSearchTags,
+  handleGetOutgoingLinks,
+} from './handlers-link.js';
+import type { ServerConfig } from '../types/index.js';
+import { ToolRegistry } from './registry.js';
 
 // Module-level rate limiter singleton — persists for process lifetime
 let _rateLimiter: RateLimitManager | null = null;
 
-function getRateLimiter(config: ServerConfig): RateLimitManager | null {
+/**
+ * Get (or lazily create) the rate limiter singleton for the given config.
+ * Exported so src/index.ts can call it directly after dispatch migration.
+ */
+export function getRateLimiter(config: ServerConfig): RateLimitManager | null {
   if (!config.rate_limiting?.enabled) return null;
   if (!_rateLimiter) {
     _rateLimiter = new RateLimitManager(config.rate_limiting);
@@ -54,7 +69,7 @@ export function _resetRateLimiterForTests(): void {
 }
 
 /**
- * Tool definition
+ * Tool definition — shape returned by getEnabledDefinitions() and used by ListTools handler.
  */
 export interface ToolDefinition {
   name: string;
@@ -65,15 +80,19 @@ export interface ToolDefinition {
     properties: Record<string, any>;
     required?: string[];
   };
-  annotations?: ToolAnnotations;
+  annotations?: import('../types/index.js').ToolAnnotations;
 }
 
 /**
- * Get all tool definitions
+ * Build and return a fully-populated ToolRegistry with all 17 tools registered and enabled.
+ *
+ * Call once at server startup; reuse the returned registry for the process lifetime.
  */
-export function getToolDefinitions(): ToolDefinition[] {
-  return [
-    {
+export function buildRegistry(): ToolRegistry {
+  const registry = new ToolRegistry();
+
+  registry.register({
+    definition: {
       name: 'read_note',
       description: 'Read the complete contents of a note including frontmatter, content, links, and metadata',
       inputSchema: zodToJsonSchema(ReadNoteSchema),
@@ -92,7 +111,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
     },
-    {
+    handler: (config, args) => handleReadNote(config, args),
+    schema: ReadNoteSchema,
+    category: 'Core CRUD',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'create_note',
       description: 'Create a new note in the vault with frontmatter and content',
       inputSchema: zodToJsonSchema(CreateNoteSchema),
@@ -112,7 +138,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }
     },
-    {
+    handler: (config, args) => handleCreateNote(config, args),
+    schema: CreateNoteSchema,
+    category: 'Core CRUD',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'edit_note',
       description: 'Edit an existing note with support for different modes (append, prepend, replace, heading-based insertion)',
       inputSchema: zodToJsonSchema(EditNoteSchema),
@@ -132,7 +165,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }
     },
-    {
+    handler: (config, args) => handleEditNote(config, args),
+    schema: EditNoteSchema,
+    category: 'Core CRUD',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'delete_note',
       description: 'Delete a note from the vault (requires confirmation)',
       inputSchema: zodToJsonSchema(DeleteNoteSchema),
@@ -151,7 +191,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false }
     },
-    {
+    handler: (config, args) => handleDeleteNote(config, args),
+    schema: DeleteNoteSchema,
+    category: 'Core CRUD',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'list_notes',
       description: 'List all notes in vault or folder with optional filtering by tag, date, or pattern',
       inputSchema: zodToJsonSchema(ListNotesSchema),
@@ -167,7 +214,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
     },
-    {
+    handler: (config, args) => handleListNotes(config, args),
+    schema: ListNotesSchema,
+    category: 'Core CRUD',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'search_notes',
       description: 'Search vault content using full-text search',
       inputSchema: zodToJsonSchema(SearchNotesSchema),
@@ -188,7 +242,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
     },
-    {
+    handler: (config, args) => handleSearchNotes(config, args),
+    schema: SearchNotesSchema,
+    category: 'Core CRUD',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'move_note',
       description: 'Move or rename a note. ⚠️ WARNING: This does NOT automatically update wikilinks.',
       inputSchema: zodToJsonSchema(MoveNoteSchema),
@@ -206,7 +267,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false }
     },
-    {
+    handler: (config, args) => handleMoveNote(config, args),
+    schema: MoveNoteSchema,
+    category: 'Core CRUD',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'update_frontmatter',
       description: 'Update specific frontmatter fields without modifying content',
       inputSchema: zodToJsonSchema(UpdateFrontmatterSchema),
@@ -223,7 +291,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }
     },
-    {
+    handler: (config, args) => handleUpdateFrontmatter(config, args),
+    schema: UpdateFrontmatterSchema,
+    category: 'Notes',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'get_daily_note',
       description: 'Get or create daily note for specified date',
       inputSchema: zodToJsonSchema(GetDailyNoteSchema),
@@ -242,7 +317,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }
     },
-    {
+    handler: (config, args) => handleGetDailyNote(config, args),
+    schema: GetDailyNoteSchema,
+    category: 'Notes',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'open_in_obsidian',
       description: 'Open a note or vault in Obsidian application',
       inputSchema: zodToJsonSchema(OpenInObsidianSchema),
@@ -261,7 +343,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true }
     },
-    {
+    handler: (config, args) => handleOpenInObsidian(config, args),
+    schema: OpenInObsidianSchema,
+    category: 'Navigation',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'get_backlinks',
       description: 'Find all notes that link to a specific note',
       inputSchema: zodToJsonSchema(GetBacklinksSchema),
@@ -287,7 +376,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
     },
-    {
+    handler: (config, args) => handleGetBacklinks(config, args),
+    schema: GetBacklinksSchema,
+    category: 'Navigation',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'create_folder',
       description: 'Create a folder in the vault',
       inputSchema: zodToJsonSchema(CreateFolderSchema),
@@ -302,7 +398,14 @@ export function getToolDefinitions(): ToolDefinition[] {
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false }
     },
-    {
+    handler: (config, args) => handleCreateFolder(config, args),
+    schema: CreateFolderSchema,
+    category: 'Vault',
+    alwaysLoaded: true
+  });
+
+  registry.register({
+    definition: {
       name: 'get_vault_stats',
       description: 'Get statistics about the vault (note count, tags, links, etc.)',
       inputSchema: zodToJsonSchema(GetVaultStatsSchema),
@@ -320,91 +423,132 @@ export function getToolDefinitions(): ToolDefinition[] {
         required: ['vault', 'note_count']
       },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
-    }
-  ];
+    },
+    handler: (config, args) => handleGetVaultStats(config, args),
+    schema: GetVaultStatsSchema,
+    category: 'Vault',
+    alwaysLoaded: true
+  });
+
+  // ── Link / Graph tools (LINK-01 … LINK-04) ────────────────────────────────
+
+  registry.register({
+    definition: {
+      name: 'get_link_graph',
+      description: 'Get a directed graph of all notes in the vault showing links between them, with graph statistics',
+      inputSchema: zodToJsonSchema(GetLinkGraphSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          vault: { type: 'string' },
+          stats: { type: 'object' },
+          nodes: { type: 'array', items: { type: 'object' } },
+          edges: { type: 'array', items: { type: 'object' } },
+          error: { type: 'string' },
+        },
+        required: ['vault', 'stats', 'nodes', 'edges'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleGetLinkGraph(config, args),
+    schema: GetLinkGraphSchema,
+    category: 'Graph',
+    alwaysLoaded: true,
+  });
+
+  registry.register({
+    definition: {
+      name: 'find_orphans',
+      description: 'Find notes with no incoming and/or no outgoing links (orphaned notes)',
+      inputSchema: zodToJsonSchema(FindOrphansSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          vault: { type: 'string' },
+          type: { type: 'string' },
+          orphans: { type: 'array', items: { type: 'object' } },
+          total: { type: 'number' },
+          total_notes: { type: 'number' },
+          error: { type: 'string' },
+        },
+        required: ['vault', 'orphans', 'total'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleFindOrphans(config, args),
+    schema: FindOrphansSchema,
+    category: 'Graph',
+    alwaysLoaded: true,
+  });
+
+  registry.register({
+    definition: {
+      name: 'search_tags',
+      description: 'Search for tags used across the vault with usage counts per tag',
+      inputSchema: zodToJsonSchema(SearchTagsSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          vault: { type: 'string' },
+          tags: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                tag: { type: 'string' },
+                count: { type: 'number' },
+                notes: { type: 'array', items: { type: 'string' } },
+              },
+            },
+          },
+          total: { type: 'number' },
+          query: { type: 'string' },
+          error: { type: 'string' },
+        },
+        required: ['vault', 'tags', 'total'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleSearchTags(config, args),
+    schema: SearchTagsSchema,
+    category: 'Graph',
+    alwaysLoaded: true,
+  });
+
+  registry.register({
+    definition: {
+      name: 'get_outgoing_links',
+      description: 'Get all outgoing wikilinks and embeds from a specific note',
+      inputSchema: zodToJsonSchema(GetOutgoingLinksSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          source: { type: 'string' },
+          links: { type: 'array', items: { type: 'object' } },
+          total: { type: 'number' },
+          broken_count: { type: 'number' },
+          error: { type: 'string' },
+        },
+        required: ['source', 'links', 'total'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleGetOutgoingLinks(config, args),
+    schema: GetOutgoingLinksSchema,
+    category: 'Graph',
+    alwaysLoaded: true,
+  });
+
+  // Must be called AFTER all register() calls (Pitfall 6: enableAll reads current Map state)
+  registry.enableAll();
+
+  return registry;
 }
 
 /**
- * Handle tool call with rate limiting
+ * Get all tool definitions.
+ * @deprecated Use buildRegistry() instead.
  */
-export async function handleToolCall(
-  config: ServerConfig,
-  toolName: string,
-  args: any
-): Promise<ToolResponse> {
-  // Get module-level rate limiter singleton (persists across calls)
-  const rateLimiter = getRateLimiter(config);
-
-  // Check rate limits before processing
-  if (rateLimiter) {
-    const vaultName = args.vault || config.vaults.find(v => v.default)?.name;
-    const rateLimitResult = await rateLimiter.checkRateLimit(toolName, vaultName);
-
-    if (!rateLimitResult.allowed) {
-      if (rateLimitResult.response) {
-        return rateLimitResult.response;
-      }
-
-      // Return error response when rate limit is exceeded (fallback when no pre-built response)
-      const rateLimitPayload = {
-        error: 'Rate limit exceeded',
-        details: rateLimitResult.warning || 'Too many requests in the current time window',
-        code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
-        waitTime: rateLimitResult.waitTime,
-        suggestion: 'Please wait before making more requests'
-      };
-      return {
-        content: [{
-          type: 'text',
-          text: JSON.stringify(rateLimitPayload, null, 2)
-        }],
-        structuredContent: rateLimitPayload as Record<string, unknown>,
-        isError: true
-      };
-    }
-  }
-
-  switch (toolName) {
-    case 'read_note':
-      return handleReadNote(config, ReadNoteSchema.parse(args));
-    
-    case 'create_note':
-      return handleCreateNote(config, CreateNoteSchema.parse(args));
-    
-    case 'edit_note':
-      return handleEditNote(config, EditNoteSchema.parse(args));
-    
-    case 'delete_note':
-      return handleDeleteNote(config, DeleteNoteSchema.parse(args));
-    
-    case 'list_notes':
-      return handleListNotes(config, ListNotesSchema.parse(args));
-    
-    case 'search_notes':
-      return handleSearchNotes(config, SearchNotesSchema.parse(args));
-    
-    case 'move_note':
-      return handleMoveNote(config, MoveNoteSchema.parse(args));
-    
-    case 'update_frontmatter':
-      return handleUpdateFrontmatter(config, UpdateFrontmatterSchema.parse(args));
-    
-    case 'get_daily_note':
-      return handleGetDailyNote(config, GetDailyNoteSchema.parse(args));
-    
-    case 'open_in_obsidian':
-      return handleOpenInObsidian(config, OpenInObsidianSchema.parse(args));
-    
-    case 'get_backlinks':
-      return handleGetBacklinks(config, GetBacklinksSchema.parse(args));
-    
-    case 'create_folder':
-      return handleCreateFolder(config, CreateFolderSchema.parse(args));
-    
-    case 'get_vault_stats':
-      return handleGetVaultStats(config, GetVaultStatsSchema.parse(args));
-    
-    default:
-      throw new Error(`Unknown tool: ${toolName}`);
-  }
+export function getToolDefinitions(): ToolDefinition[] {
+  return buildRegistry().getEnabledDefinitions();
 }

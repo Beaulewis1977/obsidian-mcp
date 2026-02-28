@@ -33,16 +33,16 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 
 ### Tool Registry Architecture
 
-- [ ] **REGX-01**: `ToolRegistry` class (`src/tools/registry.ts`) centralizes all tool registration using `Map<string, ToolRegistration>` + `Set<string>` of enabled names
-- [ ] **REGX-02**: Static switch dispatch in `handleToolCall` is replaced by registry dispatch
-- [ ] **REGX-03**: `buildRegistry()` factory in `src/tools/index.ts` replaces `getToolDefinitions()` + switch pattern
+- [x] **REGX-01**: `ToolRegistry` class (`src/tools/registry.ts`) centralizes all tool registration using `Map<string, ToolRegistration>` + `Set<string>` of enabled names
+- [x] **REGX-02**: Static switch dispatch in `handleToolCall` is replaced by registry dispatch
+- [x] **REGX-03**: `buildRegistry()` factory in `src/tools/index.ts` replaces `getToolDefinitions()` + switch pattern
 
 ### Link Graph Tools
 
-- [ ] **LINK-01**: `get_link_graph` — returns vault-wide directed graph (nodes as note paths, edges as wikilinks, graph stats)
-- [ ] **LINK-02**: `find_orphans` — returns notes with no incoming AND no outgoing links
-- [ ] **LINK-03**: `search_tags` — returns all tags used in the vault with usage counts per tag
-- [ ] **LINK-04**: `get_outgoing_links` — returns all wikilinks from a specific note (complement to existing `get_backlinks`)
+- [x] **LINK-01**: `get_link_graph` — returns vault-wide directed graph (nodes as note paths, edges as wikilinks, graph stats)
+- [x] **LINK-02**: `find_orphans` — returns notes with no incoming AND no outgoing links
+- [x] **LINK-03**: `search_tags` — returns all tags used in the vault with usage counts per tag
+- [x] **LINK-04**: `get_outgoing_links` — returns all wikilinks from a specific note (complement to existing `get_backlinks`)
 
 ### Lazy Loading
 
@@ -119,13 +119,13 @@ Roadmap created 2026-02-26. All 34 v1 requirements mapped across 4 phases.
 | SPEC-05 | Phase 1 | Complete |
 | TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1–4 | Ongoing — Phase 1 complete, Phases 2–4 pending |
-| REGX-01 | Phase 2 | Pending |
-| REGX-02 | Phase 2 | Pending |
-| REGX-03 | Phase 2 | Pending |
-| LINK-01 | Phase 2 | Pending |
-| LINK-02 | Phase 2 | Pending |
-| LINK-03 | Phase 2 | Pending |
-| LINK-04 | Phase 2 | Pending |
+| REGX-01 | Phase 2 | Complete |
+| REGX-02 | Phase 2 | Complete |
+| REGX-03 | Phase 2 | Complete |
+| LINK-01 | Phase 2 | Complete |
+| LINK-02 | Phase 2 | Complete |
+| LINK-03 | Phase 2 | Complete |
+| LINK-04 | Phase 2 | Complete |
 | LAZY-01 | Phase 3 | Pending |
 | LAZY-02 | Phase 3 | Pending |
 | LAZY-03 | Phase 3 | Pending |
@@ -149,4 +149,4 @@ Roadmap created 2026-02-26. All 34 v1 requirements mapped across 4 phases.
 
 ---
 *Requirements defined: 2026-02-26*
-*Last updated: 2026-02-26 after roadmap creation*
+*Last updated: 2026-02-27 after Phase 2 requirement completion updates*
