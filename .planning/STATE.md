@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-02-27T22:45:46.407Z"
+last_updated: "2026-02-28T01:11:00Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 9
+  completed_plans: 9
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Claude can reliably read, write, organize, and navigate Obsidian notes through a spec-compliant, efficient MCP interface.
-**Current focus:** Phase 2 fully complete — ToolRegistry + 4 link/graph tools + integration tests done; Phase 3 lazy loading is next
+**Current focus:** Phase 3 lazy loading in progress — 03-01 complete (registry upgrade + meta-tool handlers + buildRegistry rewrite)
 
 ## Current Position
 
-Phase: 2 of 4 (Registry + Link Tools) — COMPLETE
-Plan: 3 of 3 completed in current phase (02-01 + 02-02 + 02-03 complete)
-Status: Phase 2 complete — ToolRegistry (17 tools), 4 link/graph tools, 116 tests passing, pre-commit gate clean
-Last activity: 2026-02-27 — Plan 02-03 complete (19 integration tests for link handlers, full pre-commit gate verified)
+Phase: 3 of 4 (Lazy Loading) — IN PROGRESS
+Plan: 1 of 3 completed in current phase (03-01 complete)
+Status: Phase 3.1 complete — resetToAlwaysLoaded(), discover_tools/enable_tool handlers, buildRegistry(lazyLoading) rewrite; 116 tests passing, pre-commit gate clean
+Last activity: 2026-02-28 — Plan 03-01 complete (registry upgrade + meta-tool schemas + handlers-meta.ts + buildRegistry rewrite)
 
-Progress: [████░░░░░░] 40% (8/20 total plans across 4 phases estimated)
+Progress: [████░░░░░░] 45% (9/20 total plans across 4 phases estimated)
 
 ## Performance Metrics
 
@@ -42,6 +42,7 @@ Progress: [████░░░░░░] 40% (8/20 total plans across 4 phases
 |-------|-------|-------|----------|
 | 01-quality-foundation | 5 | 60 min | 12 min |
 | 02-registry-link-tools | 3 | 12 min | 4 min |
+| 03-lazy-loading | 1 | 4 min | 4 min |
 
 **Recent Trend:**
 - Last 8 plans: 35m, 7m, 5m, 5m, 8m, 4m, 3m, 5m
@@ -82,6 +83,10 @@ Recent decisions affecting current work:
 - [02-02]: nameToPath shortest-path-wins: sort notes by path.length ascending before building basename lookup Map
 - [02-02]: handleGetLinkGraph folder filter: full-vault graph build with nameToPath for cross-folder link resolution correctness
 - [Phase 02]: 19 integration tests cover all 4 link handlers — buildVaultGraph only creates edges for resolved vault notes (image.png embed is correctly absent from edges)
+- [03-01]: buildRegistry(lazyLoading=true) default — lazy mode on by default; existing tests using dispatch() must call buildRegistry(false) for backward compat
+- [03-01]: handleDiscoverTools/handleEnableTool return sync ToolResponse, wrapped in Promise.resolve() at registration site — handler type expects Promise<ToolResponse>
+- [03-01]: categories field in discover_tools computed from ALL tools (unfiltered) so full category index always shown regardless of query/category filter applied to tools list
+- [03-01]: sendToolListChanged fire-and-forget: void Promise.resolve().then().catch() pattern — prevents response/notification race + silences "Not connected" in test environments
 
 ### Pending Todos
 
@@ -94,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-27
-Stopped at: Completed 02-03-PLAN.md (19 integration tests for 4 link handlers, pre-commit gate clean: 116 tests pass, tsc exits 0, tsup builds — 1 file created)
+Last session: 2026-02-28
+Stopped at: Completed 03-01-PLAN.md (registry resetToAlwaysLoaded, meta-tool schemas, handlers-meta.ts, buildRegistry rewrite — 116 tests pass, tsc exits 0, tsup builds — 3 commits)
 Resume file: None

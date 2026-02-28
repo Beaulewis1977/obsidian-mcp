@@ -46,11 +46,11 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 
 ### Lazy Loading
 
-- [ ] **LAZY-01**: `discover_tools` meta-tool — returns all registered tools with name, category, description, and enabled status; always enabled
-- [ ] **LAZY-02**: `enable_tool` meta-tool — enables a named tool in the current session; always enabled; emits `notifications/tools/list_changed` (non-blocking fire-and-forget)
-- [ ] **LAZY-03**: When `lazy_loading: true` (default), only `discover_tools` and `enable_tool` are enabled at session start
-- [ ] **LAZY-04**: When `lazy_loading: false`, all tools are enabled at session start (backward-compat mode)
-- [ ] **LAZY-05**: `enable_tool` response includes the full tool schema so clients without `list_changed` support can use the tool immediately
+- [x] **LAZY-01**: `discover_tools` meta-tool — returns all registered tools with name, category, description, and enabled status; always enabled
+- [x] **LAZY-02**: `enable_tool` meta-tool — enables a named tool in the current session; always enabled; emits `notifications/tools/list_changed` (non-blocking fire-and-forget)
+- [x] **LAZY-03**: When `lazy_loading: true` (default), only `discover_tools` and `enable_tool` are enabled at session start
+- [x] **LAZY-04**: When `lazy_loading: false`, all tools are enabled at session start (backward-compat mode)
+- [x] **LAZY-05**: `enable_tool` response includes the full tool schema so clients without `list_changed` support can use the tool immediately
 
 ### Extended Tools
 
@@ -126,11 +126,11 @@ Roadmap created 2026-02-26. All 34 v1 requirements mapped across 4 phases.
 | LINK-02 | Phase 2 | Complete |
 | LINK-03 | Phase 2 | Complete |
 | LINK-04 | Phase 2 | Complete |
-| LAZY-01 | Phase 3 | Pending |
-| LAZY-02 | Phase 3 | Pending |
-| LAZY-03 | Phase 3 | Pending |
-| LAZY-04 | Phase 3 | Pending |
-| LAZY-05 | Phase 3 | Pending |
+| LAZY-01 | Phase 3 | Complete |
+| LAZY-02 | Phase 3 | Complete |
+| LAZY-03 | Phase 3 | Complete |
+| LAZY-04 | Phase 3 | Complete |
+| LAZY-05 | Phase 3 | Complete |
 | XTND-01 | Phase 4 | Pending |
 | XTND-02 | Phase 4 | Pending |
 | XTND-03 | Phase 4 | Pending |

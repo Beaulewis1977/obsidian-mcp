@@ -66,7 +66,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Core implementation: registry resetToAlwaysLoaded(), meta-tool schemas, handlers-meta.ts, buildRegistry rewrite with lazyLoading gate
+- [x] 03-01-PLAN.md — Core implementation: registry resetToAlwaysLoaded(), meta-tool schemas, handlers-meta.ts, buildRegistry rewrite with lazyLoading gate
 - [ ] 03-02-PLAN.md — Server wiring (listChanged capability, oninitialized hook) + integration tests for all LAZY-* requirements
 
 ### Phase 4: Extended Tools + Polish
@@ -89,5 +89,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Quality Foundation | 5/5 | Complete | 2026-02-27 |
 | 2. Registry + Link Tools | 3/3 | Complete   | 2026-02-27 |
-| 3. Lazy Loading | 0/2 | In Progress | - |
+| 3. Lazy Loading | 1/2 | In Progress | - |
 | 4. Extended Tools + Polish | 0/TBD | Not started | - |
