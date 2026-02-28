@@ -67,7 +67,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — Core implementation: registry resetToAlwaysLoaded(), meta-tool schemas, handlers-meta.ts, buildRegistry rewrite with lazyLoading gate
-- [ ] 03-02-PLAN.md — Server wiring (listChanged capability, oninitialized hook) + integration tests for all LAZY-* requirements
+- [x] 03-02-PLAN.md — Server wiring (listChanged capability, oninitialized hook) + integration tests for all LAZY-* requirements
 
 ### Phase 4: Extended Tools + Polish
 **Goal**: Five additional tools are available, all tools carry per-property input examples, high-volume list tools support cursor pagination, and API_REFERENCE.md reflects the full final tool surface
