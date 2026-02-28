@@ -59,7 +59,9 @@ describe('Path Validators', () => {
       // vaultWithSeparator adds trailing separator, so vaultPath won't start with vaultPath/
       expect(result.valid).toBe(false);
       expect(result.error).toBeDefined();
-      expect(result.error).toContain('outside vault');
+      expect(result.error).toContain('outside vault boundary');
+      expect(result.error).toContain('resolved=');
+      expect(result.error).toContain('vault=');
     });
 
     it('should handle path with only filename', () => {

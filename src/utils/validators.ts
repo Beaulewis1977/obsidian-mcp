@@ -57,7 +57,7 @@ export function validatePath(inputPath: string, vaultRoot: string): {
       logger.warn({ path: inputPath, resolved, vault: normalizedVault }, 'Path outside vault boundary');
       return {
         valid: false,
-        error: 'Invalid path: resolved path is outside vault boundary'
+        error: `Invalid path: resolved path is outside vault boundary (resolved="${resolved}", vault="${normalizedVault}")`
       };
     }
   } catch (error) {
