@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
+last_updated: "2026-02-28T23:11:33.134Z"
+progress:
+  total_phases: 5
+  completed_phases: 4
+  total_plans: 17
+  completed_plans: 15
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
 last_updated: "2026-02-28T23:09:54.804Z"
 progress:
   total_phases: 5
@@ -31,16 +44,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Claude can reliably read, write, organize, and navigate Obsidian notes through a spec-compliant, efficient MCP interface.
-**Current focus:** Phase 4 plan 03 complete — cursor pagination wired to handleListNotes, handleSearchNotes, handleSearchTags; 172 tests passing; Phase 4 plan 04 (registry + outputSchema wiring) is next
+**Current focus:** Phase 4 plans 01, 02, 03 complete — handlers-extended.ts (5 handlers), pagination, schemas; 186 tests passing; Phase 4 plans 04+05 remaining
 
 ## Current Position
 
 Phase: 4 of 4 (Extended Tools + Polish) — in progress
-Plan: 3 of 5 completed in current phase (04-01, 04-03 complete; 04-02 parallel)
-Status: Phase 4 plan 03 complete — cursor pagination wired to handleListNotes, handleSearchNotes, handleSearchTags; 172 tests passing
-Last activity: 2026-02-28 — Phase 4 plan 03 executed (2 min)
+Plan: 3 of 5 completed in current phase (04-01, 04-02, 04-03 complete)
+Status: Phase 4 plan 02 complete — handlers-extended.ts (5 handlers) + 14 integration tests, 186 tests passing
+Last activity: 2026-02-28 — Phase 4 plan 02 executed (5 min)
 
-Progress: [████████░░] 88% (4/4 phases in progress, 15 plans executed)
+Progress: [█████████░] 90% (4/4 phases in progress, 16 plans executed)
 
 ## Performance Metrics
 
@@ -57,6 +70,7 @@ Progress: [████████░░] 88% (4/4 phases in progress, 15 plans
 | 02-registry-link-tools | 3 | 12 min | 4 min |
 | 03-lazy-loading | 2 | 5 min | 2.5 min |
 | 04-extended-tools-polish P01 | 1 | 8 min | 8 min |
+| 04-extended-tools-polish P02 | 1 | 5 min | 5 min |
 | 04-extended-tools-polish P03 | 1 | 2 min | 2 min |
 
 **Recent Trend:**
@@ -65,6 +79,7 @@ Progress: [████████░░] 88% (4/4 phases in progress, 15 plans
 
 *Updated after each plan completion*
 | Phase 04-extended-tools-polish P03 | 2 | 2 tasks | 3 files |
+| Phase 04 P02 | 5 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -119,6 +134,8 @@ Recent decisions affecting current work:
 - [Phase 04-extended-tools-polish]: GetWeeklyNoteSchema uses week_folder/date_format input params instead of VaultConfig fields — avoids schema migration
 - [Phase 04-extended-tools-polish]: total in response always reflects FULL unpaginated count — LLM clients need total to know how many items exist
 - [Phase 04-extended-tools-polish]: nextCursor spread conditionally via ...(nextCursor !== undefined ? { nextCursor } : {}) — keeps JSON clean
+- [Phase 04]: native ISO week computation instead of dayjs().format('YYYY-[W]WW') — dayjs WW produces literal 'WWW'; Thursday-based Date math gives correct ISO week numbers
+- [Phase 04-02]: moveNote signature is moveNote(vaultPath, sourcePath, targetPath) — 3 args with relative paths, not 2 absolute paths as plan described
 
 ### Roadmap Evolution
 
@@ -136,5 +153,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Phase 4 plan 03 complete — pagination wired to handleListNotes, handleSearchNotes, handleSearchTags (091d99a, 3fa08de)
+Stopped at: Phase 4 plan 02 complete — handlers-extended.ts (5 handlers) + handlers-extended.test.ts (14 tests) (3fa08de, 5769c59)
 Resume file: None
