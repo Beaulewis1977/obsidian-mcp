@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-02-28T01:11:00Z"
+last_updated: "2026-02-28T01:20:00Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 10
+  completed_plans: 10
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Claude can reliably read, write, organize, and navigate Obsidian notes through a spec-compliant, efficient MCP interface.
-**Current focus:** Phase 3 lazy loading in progress — 03-01 complete (registry upgrade + meta-tool handlers + buildRegistry rewrite)
+**Current focus:** Phase 3 lazy loading in progress — 03-01 and 03-02 complete; only 03-03 (manual verification) remaining
 
 ## Current Position
 
 Phase: 3 of 4 (Lazy Loading) — IN PROGRESS
-Plan: 1 of 3 completed in current phase (03-01 complete)
-Status: Phase 3.1 complete — resetToAlwaysLoaded(), discover_tools/enable_tool handlers, buildRegistry(lazyLoading) rewrite; 116 tests passing, pre-commit gate clean
-Last activity: 2026-02-28 — Plan 03-01 complete (registry upgrade + meta-tool schemas + handlers-meta.ts + buildRegistry rewrite)
+Plan: 2 of 3 completed in current phase (03-02 complete)
+Status: Phase 3.2 complete — index.ts wired with listChanged capability, lazyLoading flag, oninitialized reset; 17 new integration tests covering all LAZY-* requirements; 133 tests passing, pre-commit gate clean
+Last activity: 2026-02-28 — Plan 03-02 complete (server wiring + lazy-loading integration tests)
 
-Progress: [████░░░░░░] 45% (9/20 total plans across 4 phases estimated)
+Progress: [█████░░░░░] 50% (10/20 total plans across 4 phases estimated)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 13 min
-- Total execution time: 0.87 hours
+- Total plans completed: 10
+- Average duration: 11 min
+- Total execution time: 0.92 hours
 
 **By Phase:**
 
@@ -42,10 +42,10 @@ Progress: [████░░░░░░] 45% (9/20 total plans across 4 phases
 |-------|-------|-------|----------|
 | 01-quality-foundation | 5 | 60 min | 12 min |
 | 02-registry-link-tools | 3 | 12 min | 4 min |
-| 03-lazy-loading | 1 | 4 min | 4 min |
+| 03-lazy-loading | 2 | 5 min | 2.5 min |
 
 **Recent Trend:**
-- Last 8 plans: 35m, 7m, 5m, 5m, 8m, 4m, 3m, 5m
+- Last 10 plans: 35m, 7m, 5m, 5m, 8m, 4m, 3m, 5m, 4m, 1m
 - Trend: fast (additive pattern implementation)
 
 *Updated after each plan completion*
@@ -87,6 +87,10 @@ Recent decisions affecting current work:
 - [03-01]: handleDiscoverTools/handleEnableTool return sync ToolResponse, wrapped in Promise.resolve() at registration site — handler type expects Promise<ToolResponse>
 - [03-01]: categories field in discover_tools computed from ALL tools (unfiltered) so full category index always shown regardless of query/category filter applied to tools list
 - [03-01]: sendToolListChanged fire-and-forget: void Promise.resolve().then().catch() pattern — prevents response/notification race + silences "Not connected" in test environments
+- [03-02]: Server created before buildRegistry() so server ref is captured in enable_tool handler closure at registration time
+- [03-02]: lazyLoading = config.lazy_loading !== false — undefined defaults to true (lazy on by default)
+- [03-02]: oninitialized hook guarded by lazyLoading flag — no-op in non-lazy mode; prevents stale session state on client reconnect
+- [03-02]: vi.waitFor() used for fire-and-forget sendToolListChanged assertion in tests — avoids flaky setTimeout-based polling
 
 ### Pending Todos
 
@@ -100,5 +104,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 03-01-PLAN.md (registry resetToAlwaysLoaded, meta-tool schemas, handlers-meta.ts, buildRegistry rewrite — 116 tests pass, tsc exits 0, tsup builds — 3 commits)
+Stopped at: Completed 03-02-PLAN.md (index.ts lazy wiring + 17 integration tests — 133 tests pass, tsc exits 0, tsup builds — 2 commits)
 Resume file: None
