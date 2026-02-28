@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 ## Current Position
 
-Phase: 3 of 4 (Lazy Loading) — COMPLETE
-Plan: 2 of 2 completed in current phase (03-01 + 03-02 complete)
-Status: Phase 3 complete — discover_tools + enable_tool meta-tools, buildRegistry lazy loading gate, listChanged capability, oninitialized session reset, 17 new integration tests, 133 total tests passing
-Last activity: 2026-02-28 — Phase 3 verified (13/13 must-haves) + UAT (12/12 pass)
+Phase: 3.1 of 4 (Vault Management Tools) — in-progress
+Plan: 1 of 2 completed in current phase (03.1-01 complete)
+Status: Phase 3.1 plan 01 complete — obsidian-config.ts platform module, getActiveConfigPath split-brain fix, AddVaultSchema/RemoveVaultSchema/ListVaultsSchema, handleAddVault/handleRemoveVault/handleListVaults; 143 tests passing
+Last activity: 2026-02-27 — Phase 3.1 plan 01 executed (4 min)
 
-Progress: [███████░░░] 75% (3/4 phases complete, 10 plans executed)
+Progress: [███████░░░] 75% (3/4 phases complete, 11 plans executed)
 
 ## Performance Metrics
 
@@ -91,6 +91,14 @@ Recent decisions affecting current work:
 - [03-02]: lazyLoading = config.lazy_loading !== false — undefined defaults to true (lazy on by default)
 - [03-02]: oninitialized hook guarded by lazyLoading flag — no-op in non-lazy mode; prevents stale session state on client reconnect
 - [03-02]: vi.waitFor() used for fire-and-forget sendToolListChanged assertion in tests — avoids flaky setTimeout-based polling
+- [03.1-01]: obsidian-config.ts uses atomic rename (tmp file in same dir) to avoid partial-write corruption on NTFS/ext4
+- [03.1-01]: getActiveConfigPath() iterates getConfigPaths() and returns first accessible path — fixes split-brain where saveConfig() always wrote to ~/.obsidian-mcp/config.json regardless of which config was loaded
+- [03.1-01]: WSL Obsidian config path derived from os.homedir().split('/').pop() for Windows username — no env var dependency
+- [03.1-01]: handleRemoveVault guards: confirm:true required, last vault blocked, default vault blocked — all guard via createErrorResponse (no throws)
+
+### Roadmap Evolution
+
+- Phase 03.1 inserted after Phase 3: Vault Management Tools (URGENT)
 
 ### Pending Todos
 
@@ -103,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-28
-Stopped at: Phase 3 complete — verified (13/13 must-haves), UAT (12/12 pass), all docs committed
+Last session: 2026-02-27
+Stopped at: Phase 3.1 plan 01 complete — platform layer + schemas + handlers committed (9104aa7, ac33d80)
 Resume file: None

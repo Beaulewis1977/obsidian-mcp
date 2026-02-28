@@ -54,10 +54,10 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 
 ### Vault Management
 
-- [ ] **VAULT-01**: `add_vault` creates folder on disk (optional), registers in obsidian.json, adds to config.json, hot-reloads in-memory config
-- [ ] **VAULT-02**: `remove_vault` unregisters from both configs, optionally deletes folder with double confirmation; cannot remove last or default vault
-- [ ] **VAULT-03**: `list_vaults` cross-references obsidian.json with config.json, shows disk status and note count
-- [ ] **VAULT-04**: All 3 vault management tools work on Windows native AND WSL
+- [x] **VAULT-01**: `add_vault` creates folder on disk (optional), registers in obsidian.json, adds to config.json, hot-reloads in-memory config
+- [x] **VAULT-02**: `remove_vault` unregisters from both configs, optionally deletes folder with double confirmation; cannot remove last or default vault
+- [x] **VAULT-03**: `list_vaults` cross-references obsidian.json with config.json, shows disk status and note count
+- [x] **VAULT-04**: All 3 vault management tools work on Windows native AND WSL
 - [ ] **VAULT-05**: Tools integrate with ToolRegistry + lazy loading (category: "Vault Management", alwaysLoaded: false)
 - [ ] **VAULT-06**: Pre-commit hook (tsc + vitest + tsup) passes with all new tests
 
@@ -140,10 +140,10 @@ Roadmap created 2026-02-26. All 34 v1 requirements mapped across 4 phases.
 | LAZY-03 | Phase 3 | Complete |
 | LAZY-04 | Phase 3 | Complete |
 | LAZY-05 | Phase 3 | Complete |
-| VAULT-01 | Phase 3.1 | Pending |
-| VAULT-02 | Phase 3.1 | Pending |
-| VAULT-03 | Phase 3.1 | Pending |
-| VAULT-04 | Phase 3.1 | Pending |
+| VAULT-01 | Phase 3.1 | Complete |
+| VAULT-02 | Phase 3.1 | Complete |
+| VAULT-03 | Phase 3.1 | Complete |
+| VAULT-04 | Phase 3.1 | Complete |
 | VAULT-05 | Phase 3.1 | Pending |
 | VAULT-06 | Phase 3.1 | Pending |
 | XTND-01 | Phase 4 | Pending |
@@ -164,4 +164,4 @@ Roadmap created 2026-02-26. All 34 v1 requirements mapped across 4 phases.
 
 ---
 *Requirements defined: 2026-02-26*
-*Last updated: 2026-02-28 after Phase 3 requirement completion updates*
+*Last updated: 2026-02-27 after Phase 3.1 plan 01 — VAULT-01 through VAULT-04 complete*
