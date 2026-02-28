@@ -38,6 +38,32 @@ export function windowsToWSLPath(windowsPath: string): string {
 }
 
 /**
+ * Normalize a vault path for the current platform.
+ * Allows a single .env to work on both Windows and WSL:
+ *   - On native Windows: converts /mnt/x/... → X:\...
+ *   - On WSL: converts D:\... or D:/... → /mnt/d/...
+ */
+export function normalizeVaultPathForPlatform(vaultPath: string): string {
+  const isWindows = process.platform === 'win32';
+
+  if (isWindows && /^\/mnt\/([a-zA-Z])\//.test(vaultPath)) {
+    // WSL-style path on native Windows → convert to Windows path
+    const drive = vaultPath[5].toUpperCase();
+    const rest = vaultPath.slice(7).replace(/\//g, '\\');
+    return `${drive}:\\${rest}`;
+  }
+
+  if (isWSL && /^[a-zA-Z]:[\\\/]/.test(vaultPath)) {
+    // Windows-style path on WSL → convert to /mnt/ path
+    const drive = vaultPath[0].toLowerCase();
+    const rest = vaultPath.slice(3).replace(/\\/g, '/');
+    return `/mnt/${drive}/${rest}`;
+  }
+
+  return vaultPath;
+}
+
+/**
  * Convert path for Obsidian (Windows app) if running in WSL
  */
 export function pathForObsidian(vaultPath: string): string {
