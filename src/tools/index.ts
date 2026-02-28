@@ -22,6 +22,9 @@ import {
   GetOutgoingLinksSchema,
   DiscoverToolsSchema,
   EnableToolSchema,
+  AddVaultSchema,
+  RemoveVaultSchema,
+  ListVaultsSchema,
 } from './schemas.js';
 import { handleDiscoverTools, handleEnableTool } from './handlers-meta.js';
 import {
@@ -47,6 +50,11 @@ import {
   handleSearchTags,
   handleGetOutgoingLinks,
 } from './handlers-link.js';
+import {
+  handleAddVault,
+  handleRemoveVault,
+  handleListVaults,
+} from './handlers-vault.js';
 import type { ServerConfig } from '../types/index.js';
 import { ToolRegistry } from './registry.js';
 
@@ -543,6 +551,83 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     handler: (config, args) => handleGetOutgoingLinks(config, args),
     schema: GetOutgoingLinksSchema,
     category: 'Graph',
+    alwaysLoaded: false,
+  });
+
+  // ── Vault Management tools (Phase 3.1) ────────────────────────────────
+
+  registry.register({
+    definition: {
+      name: 'add_vault',
+      description: 'Create and register a new Obsidian vault (folder + obsidian.json + config.json)',
+      inputSchema: zodToJsonSchema(AddVaultSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean' },
+          vault_name: { type: 'string' },
+          path: { type: 'string' },
+          folder_created: { type: 'boolean' },
+          obsidian_registered: { type: 'boolean' },
+          mcp_registered: { type: 'boolean' },
+          note: { type: 'string' },
+          error: { type: 'string' },
+        },
+        required: ['success'],
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    handler: (config, args) => handleAddVault(config, args),
+    schema: AddVaultSchema,
+    category: 'Vault Management',
+    alwaysLoaded: false,
+  });
+
+  registry.register({
+    definition: {
+      name: 'remove_vault',
+      description: 'Unregister a vault from Obsidian and MCP config, optionally delete folder',
+      inputSchema: zodToJsonSchema(RemoveVaultSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean' },
+          vault_name: { type: 'string' },
+          path: { type: 'string' },
+          folder_deleted: { type: 'boolean' },
+          obsidian_unregistered: { type: 'boolean' },
+          mcp_unregistered: { type: 'boolean' },
+          error: { type: 'string' },
+        },
+        required: ['success'],
+      },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+    },
+    handler: (config, args) => handleRemoveVault(config, args),
+    schema: RemoveVaultSchema,
+    category: 'Vault Management',
+    alwaysLoaded: false,
+  });
+
+  registry.register({
+    definition: {
+      name: 'list_vaults',
+      description: 'List all configured vaults with disk status and note counts',
+      inputSchema: zodToJsonSchema(ListVaultsSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          vaults: { type: 'array', items: { type: 'object' } },
+          total: { type: 'number' },
+          error: { type: 'string' },
+        },
+        required: ['vaults', 'total'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleListVaults(config, args),
+    schema: ListVaultsSchema,
+    category: 'Vault Management',
     alwaysLoaded: false,
   });
 
