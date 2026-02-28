@@ -137,8 +137,8 @@ describe('handleAddVault', () => {
     expect(payload.success).toBe(true);
     // Folder was not created since it already existed
     expect(payload.folder_created).toBe(false);
-    // mkdir should NOT have been called since access succeeded
-    expect(mockFs.mkdir).not.toHaveBeenCalledWith('/vaults/new', expect.anything());
+    // mkdir should NOT have been called at all since access succeeded (folder existed)
+    expect(mockFs.mkdir).not.toHaveBeenCalled();
   });
 });
 

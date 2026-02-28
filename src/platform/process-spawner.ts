@@ -91,7 +91,9 @@ async function findObsidianExecutable(): Promise<string | null> {
         const rest = winPath.slice(3).replace(/\\/g, '/');
         wslLocalAppData = `/mnt/${drive}/${rest}`;
       }
-    } catch { /* ignore */ }
+    } catch (err) {
+      logger.debug({ err, isWSL, cmd: CMD_EXE }, 'LOCALAPPDATA resolution via cmd.exe failed; wslLocalAppData will be empty');
+    }
   }
   const candidates = [
     // Windows user-scoped install (most common — Squirrel installer)

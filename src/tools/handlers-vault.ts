@@ -13,6 +13,27 @@ import { normalizeVaultPathForPlatform, pathForObsidian } from '../platform/path
 import { listNotes } from '../filesystem/vault-reader.js';
 
 // ---------------------------------------------------------------------------
+// Process-level vault mutation lock
+// Serializes concurrent obsidian.json read-modify-write operations so that
+// two simultaneous add_vault / remove_vault calls cannot interleave their
+// reads and writes, producing lost updates.
+// ---------------------------------------------------------------------------
+
+let _vaultMutationLock: Promise<void> = Promise.resolve();
+
+async function withVaultMutationLock<T>(fn: () => Promise<T>): Promise<T> {
+  const current = _vaultMutationLock;
+  let release!: () => void;
+  _vaultMutationLock = new Promise<void>(resolve => { release = resolve; });
+  await current;
+  try {
+    return await fn();
+  } finally {
+    release();
+  }
+}
+
+// ---------------------------------------------------------------------------
 // handleAddVault
 // ---------------------------------------------------------------------------
 
@@ -49,15 +70,17 @@ export async function handleAddVault(
       }
     }
 
-    // 3. Register in Obsidian's obsidian.json
+    // 3. Register in Obsidian's obsidian.json (serialized via process-level lock)
     let obsidian_registered = false;
-    const obsConfig = await readObsidianConfig();
-    const vaultId = randomBytes(8).toString('hex');
-    obsConfig.vaults[vaultId] = {
-      path: pathForObsidian(args.path),
-      ts: Date.now(),
-    };
-    await writeObsidianConfig(obsConfig);
+    await withVaultMutationLock(async () => {
+      const obsConfig = await readObsidianConfig();
+      const vaultId = randomBytes(8).toString('hex');
+      obsConfig.vaults[vaultId] = {
+        path: pathForObsidian(args.path),
+        ts: Date.now(),
+      };
+      await writeObsidianConfig(obsConfig);
+    });
     obsidian_registered = true;
 
     // 4. Write to MCP config.json
@@ -75,7 +98,11 @@ export async function handleAddVault(
     try {
       const content = await fs.readFile(configPath, 'utf-8');
       rawConfig = JSON.parse(content) as ServerConfig;
-    } catch {
+    } catch (err: any) {
+      if (err?.code !== 'ENOENT') {
+        // Permissions error, malformed JSON, etc. — surface to caller
+        throw err;
+      }
       // File doesn't exist yet — start with current in-memory config shape
       rawConfig = { ...config, vaults: [] };
     }
@@ -192,20 +219,22 @@ export async function handleRemoveVault(
       );
     }
 
-    // 5. Unregister from obsidian.json
+    // 5. Unregister from obsidian.json (serialized via process-level lock)
     let obsidian_unregistered = false;
-    const obsConfig = await readObsidianConfig();
-    const normalizedVaultPath = normalizeVaultPathForPlatform(vault.path);
-    for (const [id, entry] of Object.entries(obsConfig.vaults)) {
-      if (normalizeVaultPathForPlatform(entry.path) === normalizedVaultPath) {
-        delete obsConfig.vaults[id];
-        obsidian_unregistered = true;
-        break;
+    await withVaultMutationLock(async () => {
+      const obsConfig = await readObsidianConfig();
+      const normalizedVaultPath = normalizeVaultPathForPlatform(vault.path);
+      for (const [id, entry] of Object.entries(obsConfig.vaults)) {
+        if (normalizeVaultPathForPlatform(entry.path) === normalizedVaultPath) {
+          delete obsConfig.vaults[id];
+          obsidian_unregistered = true;
+          break;
+        }
       }
-    }
-    if (obsidian_unregistered) {
-      await writeObsidianConfig(obsConfig);
-    }
+      if (obsidian_unregistered) {
+        await writeObsidianConfig(obsConfig);
+      }
+    });
 
     // 6. Remove from MCP config.json
     let mcp_unregistered = false;

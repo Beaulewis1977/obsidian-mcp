@@ -1,5 +1,6 @@
 
 import fs from 'fs/promises';
+import { existsSync, readdirSync } from 'fs';
 import path from 'path';
 import os from 'os';
 import isWSL from 'is-wsl';
@@ -42,10 +43,38 @@ export function getObsidianConfigPath(): string {
   if (isWSL) {
     // Derive Windows username from the WSL home directory
     const username = os.homedir().split('/').pop();
-    if (!username) {
-      throw new Error('Cannot determine Windows username from WSL home directory.');
+    const primary = username
+      ? `/mnt/c/Users/${username}/AppData/Roaming/obsidian/obsidian.json`
+      : null;
+
+    // Fast path: derived path exists
+    if (primary && existsSync(primary)) {
+      return primary;
     }
-    return `/mnt/c/Users/${username}/AppData/Roaming/obsidian/obsidian.json`;
+
+    // Username mismatch or file missing — scan /mnt/c/Users for any user that has obsidian.json
+    try {
+      const users = readdirSync('/mnt/c/Users');
+      for (const user of users) {
+        const candidate = `/mnt/c/Users/${user}/AppData/Roaming/obsidian/obsidian.json`;
+        if (existsSync(candidate)) {
+          return candidate;
+        }
+      }
+    } catch {
+      // /mnt/c/Users not accessible (no Windows drive mounted)
+    }
+
+    // File not found anywhere — return best-guess path; caller handles ENOENT
+    if (primary) {
+      return primary;
+    }
+
+    throw new Error(
+      'Cannot determine Windows username from WSL home directory, ' +
+      'and no Obsidian config found under /mnt/c/Users. ' +
+      'Set the OBSIDIAN_CONFIG_PATH environment variable to override.'
+    );
   }
 
   if (process.platform === 'darwin') {
@@ -95,7 +124,10 @@ export async function writeObsidianConfig(config: ObsidianConfig): Promise<void>
 
   await fs.mkdir(dir, { recursive: true });
 
-  const tmpPath = path.join(dir, `.obsidian-config-tmp-${Date.now()}`);
+  const tmpPath = path.join(
+    dir,
+    `.obsidian-config-tmp-${Date.now()}-${process.pid}-${Math.random().toString(36).slice(2)}`
+  );
   try {
     await fs.writeFile(tmpPath, JSON.stringify(config, null, 2), 'utf-8');
     await fs.rename(tmpPath, configPath);

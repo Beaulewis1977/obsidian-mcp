@@ -182,7 +182,7 @@ After modifying `config.json`, call the existing `loadConfig()` to refresh the i
 |------|--------|
 | `src/tools/schemas.ts` | Add `AddVaultSchema`, `RemoveVaultSchema`, `ListVaultsSchema` |
 | `src/tools/handlers-vault.ts` | NEW — vault management handlers |
-| `src/tools/registry.ts` | Register 3 new tools in "Vault Management" category |
+| `src/tools/index.ts` | Register 3 new tools via `buildRegistry()` in "Vault Management" category |
 | `src/platform/obsidian-config.ts` | NEW — read/write Obsidian's `obsidian.json` |
 | `src/config/index.ts` | Export config reload function |
 | `src/tools/__tests__/handlers-vault.test.ts` | NEW — unit tests |

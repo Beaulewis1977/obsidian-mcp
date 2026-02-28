@@ -7,6 +7,8 @@ import {
   UpdateFrontmatterSchema,
   GetDailyNoteSchema,
   GetOutgoingLinksSchema,
+  AddVaultSchema,
+  RemoveVaultSchema,
 } from '../schemas.js';
 
 describe('Schema coercion', () => {
@@ -84,6 +86,42 @@ describe('Schema coercion', () => {
       });
       expect(links.include_embeds).toBe(false);
       expect(links.resolve).toBe(true);
+
+      // AddVaultSchema.create_folder and .default
+      const addTrue = AddVaultSchema.parse({
+        name: 'my-vault',
+        path: '/vaults/my-vault',
+        create_folder: 'true' as unknown as boolean,
+        default: 'false' as unknown as boolean,
+      });
+      expect(addTrue.create_folder).toBe(true);
+      expect(addTrue.default).toBe(false);
+
+      const addFalse = AddVaultSchema.parse({
+        name: 'my-vault',
+        path: '/vaults/my-vault',
+        create_folder: 'false' as unknown as boolean,
+        default: 'true' as unknown as boolean,
+      });
+      expect(addFalse.create_folder).toBe(false);
+      expect(addFalse.default).toBe(true);
+
+      // RemoveVaultSchema.delete_folder and .confirm
+      const remove = RemoveVaultSchema.parse({
+        name: 'my-vault',
+        delete_folder: 'true' as unknown as boolean,
+        confirm: 'true' as unknown as boolean,
+      });
+      expect(remove.delete_folder).toBe(true);
+      expect(remove.confirm).toBe(true);
+
+      const removeNoDelete = RemoveVaultSchema.parse({
+        name: 'my-vault',
+        delete_folder: 'false' as unknown as boolean,
+        confirm: 'false' as unknown as boolean,
+      });
+      expect(removeNoDelete.delete_folder).toBe(false);
+      expect(removeNoDelete.confirm).toBe(false);
     });
   });
 
