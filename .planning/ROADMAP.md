@@ -96,7 +96,14 @@ Plans:
   2. Every tool's input schema fields include a populated `examples` array (JSON Schema 2020-12 per-property `examples` keyword); no tool uses the old top-level `input_examples` pattern
   3. `list_notes`, `search_notes`, and `search_tags` accept a `cursor` input and return `nextCursor` in their response when more results exist; omitting `cursor` returns the first page
   4. `API_REFERENCE.md` documents all tools including the Milestone 2 additions with accurate parameter descriptions and example responses
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Foundation utilities: withExamples() post-processor, pagination.ts, 5 new Zod schemas + cursor fields on 3 existing schemas
+- [ ] 04-02-PLAN.md — 5 new tool handlers in handlers-extended.ts + integration tests
+- [ ] 04-03-PLAN.md — Cursor pagination for list_notes, search_notes, search_tags + integration tests
+- [ ] 04-04-PLAN.md — Registry wiring: register 5 new tools, apply withExamples to all 27 tools, update tool count test
+- [ ] 04-05-PLAN.md — API_REFERENCE.md: document all 27 tools including pagination and new tool sections
 
 ## Progress
 
@@ -109,4 +116,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Registry + Link Tools | 3/3 | Complete   | 2026-02-27 |
 | 3. Lazy Loading | 2/2 | Complete   | 2026-02-28 |
 | 3.1. Vault Management Tools | 2/2 | Complete | 2026-02-27 |
-| 4. Extended Tools + Polish | 0/TBD | Not started | - |
+| 4. Extended Tools + Polish | 0/5 | Not started | - |
