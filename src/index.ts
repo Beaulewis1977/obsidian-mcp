@@ -42,10 +42,7 @@ async function main() {
       platform: platform.platform
     }, 'Configuration loaded');
 
-    // Build tool registry — registers and enables all 17 tools
-    const registry = buildRegistry();
-
-    // Create MCP server
+    // Create MCP server (moved above registry build so server ref is available)
     const server = new Server(
       {
         name: 'obsidian-mcp-server',
@@ -53,10 +50,21 @@ async function main() {
       },
       {
         capabilities: {
-          tools: {},
+          tools: { listChanged: true },
         },
       }
     );
+
+    // Build tool registry — lazy_loading defaults to true (only meta-tools enabled at start)
+    const lazyLoading = config.lazy_loading !== false;
+    const registry = buildRegistry(lazyLoading, server);
+
+    // Reset enabled tools on client reconnect (session state is process-global)
+    server.oninitialized = () => {
+      if (lazyLoading) {
+        registry.resetToAlwaysLoaded();
+      }
+    };
 
     // Register tool list handler
     server.setRequestHandler(ListToolsRequestSchema, async () => {
