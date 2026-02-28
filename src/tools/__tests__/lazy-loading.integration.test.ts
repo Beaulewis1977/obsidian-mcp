@@ -23,9 +23,9 @@ describe('buildRegistry — lazy_loading: true (default)', () => {
     expect(names).toEqual(['discover_tools', 'enable_tool']);
   });
 
-  it('registers all 19 tools total (17 feature + 2 meta)', () => {
+  it('registers all 22 tools total (20 feature + 2 meta)', () => {
     const registry = buildRegistry(true);
-    expect(registry.getAll().length).toBe(19);
+    expect(registry.getAll().length).toBe(22);
   });
 });
 
@@ -34,7 +34,7 @@ describe('buildRegistry — lazy_loading: true (default)', () => {
 describe('buildRegistry — lazy_loading: false', () => {
   it('enables all registered tools at session start', () => {
     const registry = buildRegistry(false);
-    expect(registry.getEnabledDefinitions().length).toBe(19);
+    expect(registry.getEnabledDefinitions().length).toBe(22);
   });
 
   it('all tool names are present in enabled definitions', () => {
@@ -48,6 +48,10 @@ describe('buildRegistry — lazy_loading: false', () => {
     expect(names).toContain('create_note');
     expect(names).toContain('get_link_graph');
     expect(names).toContain('find_orphans');
+    // Vault management tools present
+    expect(names).toContain('add_vault');
+    expect(names).toContain('remove_vault');
+    expect(names).toContain('list_vaults');
   });
 });
 
@@ -65,7 +69,7 @@ describe('discover_tools handler', () => {
     expect(result.isError).toBeUndefined();
 
     const payload = JSON.parse(result.content[0].text as string);
-    expect(payload.total).toBe(19);
+    expect(payload.total).toBe(22);
     expect(Array.isArray(payload.tools)).toBe(true);
 
     // Each tool object must have the four required fields
@@ -92,8 +96,8 @@ describe('discover_tools handler', () => {
     expect(result.isError).toBeUndefined();
 
     const payload = JSON.parse(result.content[0].text as string);
-    // total is always unfiltered (all 19)
-    expect(payload.total).toBe(19);
+    // total is always unfiltered (all 22)
+    expect(payload.total).toBe(22);
     // Each tool in results must match 'note' in name or description
     payload.tools.forEach((tool: any) => {
       const matchesName = tool.name.toLowerCase().includes('note');
@@ -136,6 +140,7 @@ describe('discover_tools handler', () => {
     expect(cats).toContain('Navigation');
     expect(cats).toContain('Notes');
     expect(cats).toContain('Vault');
+    expect(cats).toContain('Vault Management');
 
     // Must be sorted alphabetically
     const sorted = [...cats].sort();
@@ -164,8 +169,8 @@ describe('discover_tools handler', () => {
     expect(payload.enabled_count).toBe(0);
     // total_enabled is from ALL tools (2 meta-tools are enabled globally)
     expect(payload.total_enabled).toBe(2);
-    // total is still all 19 tools (unfiltered)
-    expect(payload.total).toBe(19);
+    // total is still all 22 tools (unfiltered)
+    expect(payload.total).toBe(22);
   });
 });
 
