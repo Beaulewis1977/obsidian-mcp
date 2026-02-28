@@ -57,6 +57,19 @@ export class ToolRegistry {
   }
 
   /**
+   * Reset enabled set to only alwaysLoaded tools.
+   * Called on client reconnect when lazy_loading is active.
+   */
+  resetToAlwaysLoaded(): void {
+    this.enabled.clear();
+    for (const [name, reg] of this.tools) {
+      if (reg.alwaysLoaded) {
+        this.enabled.add(name);
+      }
+    }
+  }
+
+  /**
    * Return definitions for all enabled tools (used by ListTools handler).
    */
   getEnabledDefinitions(): ToolDefinition[] {
