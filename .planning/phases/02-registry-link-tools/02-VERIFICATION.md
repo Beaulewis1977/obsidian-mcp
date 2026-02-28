@@ -25,15 +25,15 @@ human_verification: []
 |---|-------|--------|----------|
 | 1 | ToolRegistry class exists with Map<string, ToolRegistration> + Set<string> architecture | VERIFIED | `src/tools/registry.ts` line 27-28: `private tools: Map<string, ToolRegistration> = new Map(); private enabled: Set<string> = new Set();` |
 | 2 | buildRegistry() factory replaces getToolDefinitions() + switch dispatch pattern | VERIFIED | `src/tools/index.ts` exports `buildRegistry()` at line 91; `handleToolCall` absent from entire `src/` tree (only a comment reference in `src/index.ts` line 75) |
-| 3 | All 13 existing tools respond identically through registry dispatch | VERIFIED | 115 tests pass including all `handlers.integration` and `handlers2.integration` suites; rate limiting preserved in `src/index.ts` CallToolRequestSchema handler |
+| 3 | All 13 existing tools respond identically through registry dispatch | VERIFIED | 116 tests pass including all `handlers.integration` and `handlers2.integration` suites; rate limiting preserved in `src/index.ts` CallToolRequestSchema handler |
 | 4 | ListTools returns 17 tool definitions (13 original + 4 new) | VERIFIED | 17 `registry.register()` calls in `buildRegistry()`; 17 confirmed by grep count; `registry.enableAll()` called as final step (line 543) |
 | 5 | get_link_graph returns a directed graph with nodes, edges, and stats | VERIFIED | `handleGetLinkGraph` in `src/tools/handlers-link.ts` (lines 32-102): builds VaultGraph, computes total_nodes/total_edges/orphan_count/avg_connections/most_connected, returns payload with nodes+edges+stats |
 | 6 | find_orphans returns notes with no incoming AND no outgoing links | VERIFIED | `handleFindOrphans` (lines 111-161): filters by `type` ('full', 'no_outgoing', 'no_incoming'); integration test confirms note-c.md (true orphan) is identified |
 | 7 | search_tags returns all tags with per-tag usage counts | VERIFIED | `handleSearchTags` (lines 171-253): reads frontmatter + inline tags, builds tagMap with counts + note paths, sorts descending, supports query filter |
 | 8 | get_outgoing_links returns all wikilinks from a specified note | VERIFIED | `handleGetOutgoingLinks` (lines 263-355): parses wikilinks via `parseWikilinks`, handles embed filter, supports resolve mode with `broken_count` |
 | 9 | All 4 new tools are registered in ToolRegistry and appear in ListTools | VERIFIED | Lines 435/459/484/518 in `src/tools/index.ts`: all 4 registered with category='Graph', alwaysLoaded=true |
-| 10 | Pre-commit hook passes clean (tsc + vitest + tsup) | VERIFIED | tsc exits 0 (no output); vitest: 115 tests pass across 7 test files; tsup build: 103.36 KB ESM + DTS success |
-| 11 | All 4 new tools have success + failure integration tests | VERIFIED | 18 tests across 4 describe blocks in `handlers-link.integration.test.ts`: 4+4+4+6 tests, each suite has at least 1 success + 1 failure path |
+| 10 | Pre-commit hook passes clean (tsc + vitest + tsup) | VERIFIED | tsc exits 0 (no output); vitest: 116 tests pass across 7 test files; tsup build: 103.36 KB ESM + DTS success |
+| 11 | All 4 new tools have success + failure integration tests | VERIFIED | 19 tests across 4 describe blocks in `handlers-link.integration.test.ts`: 5+4+4+6 tests, each suite has at least 1 success + 1 failure path |
 
 **Score:** 11/11 truths verified
 
@@ -150,7 +150,7 @@ Phase 2 fully achieves its stated goal. All three components are in place:
 
 3. **Architecture ready for lazy loading:** All 17 tools registered with `alwaysLoaded: true` and `category` fields set. `getAll()` and `getRegistration()` methods on `ToolRegistry` are Phase 3 extension points. The `enable()` method supports selective per-tool activation.
 
-4. **Quality gate clean:** tsc exits 0, 115/115 tests pass (7 test files), tsup builds successfully.
+4. **Quality gate clean:** tsc exits 0, 116/116 tests pass (7 test files), tsup builds successfully.
 
 ---
 

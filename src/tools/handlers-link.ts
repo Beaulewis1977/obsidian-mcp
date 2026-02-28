@@ -321,9 +321,24 @@ export async function handleGetOutgoingLinks(
 
     for (const link of links) {
       if (input.resolve) {
-        // Check if target exists — try both with and without .md extension
-        const targetWithExt = link.target.endsWith('.md') ? link.target : link.target + '.md';
-        const exists = await noteExists(vault.path, targetWithExt);
+        // Check if target exists.
+        // Embeds and non-markdown files: check as-is (don't append .md).
+        // Notes: try as-is first, then with .md appended.
+        const target = link.target;
+        const hasExtension = /\.[^/\\]+$/.test(target);
+        const hasMarkdownExt = target.toLowerCase().endsWith('.md');
+
+        let exists = false;
+
+        if (link.isEmbed || (hasExtension && !hasMarkdownExt)) {
+          exists = await noteExists(vault.path, target);
+        } else {
+          exists = await noteExists(vault.path, target);
+          if (!exists) {
+            const targetWithExt = hasMarkdownExt ? target : target + '.md';
+            exists = await noteExists(vault.path, targetWithExt);
+          }
+        }
         if (!exists) brokenCount++;
 
         resolvedLinks.push({
