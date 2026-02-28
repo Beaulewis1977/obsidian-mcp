@@ -137,6 +137,28 @@ export const GetOutgoingLinksSchema = z.object({
   resolve: coerceBool.default(false).describe('Check if each link target exists in vault'),
 });
 
+// --- Vault Management tool schemas (Phase 3.1) ---
+
+export const AddVaultSchema = z.object({
+  name: z.string().min(1).describe('Unique display name for the vault (e.g., "Personal Notes")'),
+  path: z.string().min(1).describe('Absolute path to the vault folder on disk'),
+  create_folder: coerceBool.default(true).describe('Create the folder if it does not exist (default: true)'),
+  default: coerceBool.default(false).describe('Set this vault as the default vault (default: false)'),
+  obsidian_api: z.object({
+    enabled: coerceBool.describe('Enable the Obsidian REST API for this vault'),
+    url: z.string().describe('Base URL of the Obsidian REST API (e.g., "http://localhost:27123")'),
+    api_key: z.string().optional().describe('API key for the Obsidian REST API'),
+  }).optional().describe('Optional Obsidian REST API configuration'),
+});
+
+export const RemoveVaultSchema = z.object({
+  name: z.string().min(1).describe('Name of the vault to remove'),
+  delete_folder: coerceBool.default(false).describe('Delete the vault folder from disk (default: false, only unregisters)'),
+  confirm: coerceBool.describe('Must be true to confirm the removal — this action cannot be undone'),
+});
+
+export const ListVaultsSchema = z.object({});
+
 // --- Meta-tool schemas (Phase 3 lazy loading) ---
 
 export const DiscoverToolsSchema = z.object({
@@ -171,3 +193,6 @@ export type SearchTagsInput = z.infer<typeof SearchTagsSchema>;
 export type GetOutgoingLinksInput = z.infer<typeof GetOutgoingLinksSchema>;
 export type DiscoverToolsInput = z.infer<typeof DiscoverToolsSchema>;
 export type EnableToolInput = z.infer<typeof EnableToolSchema>;
+export type AddVaultInput = z.infer<typeof AddVaultSchema>;
+export type RemoveVaultInput = z.infer<typeof RemoveVaultSchema>;
+export type ListVaultsInput = z.infer<typeof ListVaultsSchema>;
