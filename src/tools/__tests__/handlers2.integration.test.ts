@@ -442,7 +442,7 @@ describe('handlers2 Integration Tests', () => {
       // Mock createFolder so the handler itself succeeds when allowed through
       mockCreateFolder.mockResolvedValue(undefined);
 
-      const registry = buildRegistry();
+      const registry = buildRegistry(false);
 
       // Mirrors the rate-limiting logic in src/index.ts CallToolRequestSchema handler
       const call = async () => {

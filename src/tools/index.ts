@@ -1,5 +1,6 @@
 
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { RateLimitManager } from '../utils/rate-limiter.js';
 import {
   ReadNoteSchema,
@@ -19,7 +20,10 @@ import {
   FindOrphansSchema,
   SearchTagsSchema,
   GetOutgoingLinksSchema,
+  DiscoverToolsSchema,
+  EnableToolSchema,
 } from './schemas.js';
+import { handleDiscoverTools, handleEnableTool } from './handlers-meta.js';
 import {
   handleReadNote,
   handleCreateNote,
@@ -84,11 +88,14 @@ export interface ToolDefinition {
 }
 
 /**
- * Build and return a fully-populated ToolRegistry with all 17 tools registered and enabled.
+ * Build and return a fully-populated ToolRegistry.
+ *
+ * When lazyLoading is true (default), only meta-tools are enabled at session start.
+ * When false, all tools are enabled (backward compat).
  *
  * Call once at server startup; reuse the returned registry for the process lifetime.
  */
-export function buildRegistry(): ToolRegistry {
+export function buildRegistry(lazyLoading: boolean = true, server?: Server): ToolRegistry {
   const registry = new ToolRegistry();
 
   registry.register({
@@ -114,7 +121,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleReadNote(config, args),
     schema: ReadNoteSchema,
     category: 'Core CRUD',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -141,7 +148,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleCreateNote(config, args),
     schema: CreateNoteSchema,
     category: 'Core CRUD',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -168,7 +175,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleEditNote(config, args),
     schema: EditNoteSchema,
     category: 'Core CRUD',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -194,7 +201,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleDeleteNote(config, args),
     schema: DeleteNoteSchema,
     category: 'Core CRUD',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -217,7 +224,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleListNotes(config, args),
     schema: ListNotesSchema,
     category: 'Core CRUD',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -245,7 +252,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleSearchNotes(config, args),
     schema: SearchNotesSchema,
     category: 'Core CRUD',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -270,7 +277,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleMoveNote(config, args),
     schema: MoveNoteSchema,
     category: 'Core CRUD',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -294,7 +301,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleUpdateFrontmatter(config, args),
     schema: UpdateFrontmatterSchema,
     category: 'Notes',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -320,7 +327,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleGetDailyNote(config, args),
     schema: GetDailyNoteSchema,
     category: 'Notes',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -346,7 +353,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleOpenInObsidian(config, args),
     schema: OpenInObsidianSchema,
     category: 'Navigation',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -379,7 +386,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleGetBacklinks(config, args),
     schema: GetBacklinksSchema,
     category: 'Navigation',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -401,7 +408,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleCreateFolder(config, args),
     schema: CreateFolderSchema,
     category: 'Vault',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   registry.register({
@@ -427,7 +434,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleGetVaultStats(config, args),
     schema: GetVaultStatsSchema,
     category: 'Vault',
-    alwaysLoaded: true
+    alwaysLoaded: false
   });
 
   // ── Link / Graph tools (LINK-01 … LINK-04) ────────────────────────────────
@@ -453,7 +460,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleGetLinkGraph(config, args),
     schema: GetLinkGraphSchema,
     category: 'Graph',
-    alwaysLoaded: true,
+    alwaysLoaded: false,
   });
 
   registry.register({
@@ -478,7 +485,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleFindOrphans(config, args),
     schema: FindOrphansSchema,
     category: 'Graph',
-    alwaysLoaded: true,
+    alwaysLoaded: false,
   });
 
   registry.register({
@@ -512,7 +519,7 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleSearchTags(config, args),
     schema: SearchTagsSchema,
     category: 'Graph',
-    alwaysLoaded: true,
+    alwaysLoaded: false,
   });
 
   registry.register({
@@ -536,11 +543,63 @@ export function buildRegistry(): ToolRegistry {
     handler: (config, args) => handleGetOutgoingLinks(config, args),
     schema: GetOutgoingLinksSchema,
     category: 'Graph',
+    alwaysLoaded: false,
+  });
+
+  // --- Meta-tools (Phase 3 lazy loading) --- always enabled regardless of lazy_loading
+
+  registry.register({
+    definition: {
+      name: 'discover_tools',
+      description: 'List all available tools with name, category, description, and enabled status. Use this to find tools before enabling them.',
+      inputSchema: zodToJsonSchema(DiscoverToolsSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          tools: { type: 'array', items: { type: 'object' } },
+          categories: { type: 'array', items: { type: 'string' } },
+          total: { type: 'number' },
+          enabled_count: { type: 'number' },
+          error: { type: 'string' },
+        },
+        required: ['tools', 'categories', 'total', 'enabled_count'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => Promise.resolve(handleDiscoverTools(registry, config, args)),
+    schema: DiscoverToolsSchema,
+    category: 'Meta',
     alwaysLoaded: true,
   });
 
-  // Must be called AFTER all register() calls (Pitfall 6: enableAll reads current Map state)
-  registry.enableAll();
+  registry.register({
+    definition: {
+      name: 'enable_tool',
+      description: 'Enable a tool for the current session. Returns the full tool schema so you can use it immediately. Call discover_tools first to see available tools.',
+      inputSchema: zodToJsonSchema(EnableToolSchema),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          enabled: { type: 'array', items: { type: 'string' } },
+          already_enabled: { type: 'boolean' },
+          schema: { type: 'object' },
+          error: { type: 'string' },
+        },
+        required: ['enabled', 'already_enabled', 'schema'],
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => Promise.resolve(handleEnableTool(registry, server, config, args)),
+    schema: EnableToolSchema,
+    category: 'Meta',
+    alwaysLoaded: true,
+  });
+
+  // Backward compat: enable all tools only when lazy_loading is false
+  if (!lazyLoading) {
+    registry.enableAll();
+  }
+  // When lazyLoading is true, only alwaysLoaded tools (discover_tools, enable_tool) are in the enabled Set
 
   return registry;
 }
