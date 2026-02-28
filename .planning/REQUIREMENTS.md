@@ -63,18 +63,18 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 
 ### Extended Tools
 
-- [ ] **XTND-01**: `manage_tags` — add or remove tags across one or more notes in a single operation
-- [ ] **XTND-02**: `archive_note` — move note to a configurable archive folder with optional frontmatter date stamp
-- [ ] **XTND-03**: `extract_links` — return all link types from a note (wikilinks, embeds, external URLs, anchors)
-- [ ] **XTND-04**: `get_weekly_note` — get or create the weekly note for a given date (mirrors `get_daily_note`)
-- [ ] **XTND-05**: `list_templates` — list available templates in the vault's configured template folder
+- [x] **XTND-01**: `manage_tags` — add or remove tags across one or more notes in a single operation
+- [x] **XTND-02**: `archive_note` — move note to a configurable archive folder with optional frontmatter date stamp
+- [x] **XTND-03**: `extract_links` — return all link types from a note (wikilinks, embeds, external URLs, anchors)
+- [x] **XTND-04**: `get_weekly_note` — get or create the weekly note for a given date (mirrors `get_daily_note`)
+- [x] **XTND-05**: `list_templates` — list available templates in the vault's configured template folder
 
 ### Polish
 
-- [ ] **PLSH-01**: All tools declare per-property `examples` arrays (JSON Schema 2020-12) on input schema fields
-- [ ] **PLSH-02**: `list_notes` supports cursor-based pagination (`nextCursor` opaque token)
-- [ ] **PLSH-03**: `search_notes` supports cursor-based pagination
-- [ ] **PLSH-04**: `search_tags` supports cursor-based pagination
+- [x] **PLSH-01**: All tools declare per-property `examples` arrays (JSON Schema 2020-12) on input schema fields
+- [x] **PLSH-02**: `list_notes` supports cursor-based pagination (`nextCursor` opaque token)
+- [x] **PLSH-03**: `search_notes` supports cursor-based pagination
+- [x] **PLSH-04**: `search_tags` supports cursor-based pagination
 - [ ] **PLSH-05**: `API_REFERENCE.md` documents all tools including the new Milestone 2 additions
 
 ## v2 Requirements
@@ -146,15 +146,15 @@ Roadmap created 2026-02-26. All 34 v1 requirements mapped across 4 phases.
 | VAULT-04 | Phase 3.1 | Complete |
 | VAULT-05 | Phase 3.1 | Complete |
 | VAULT-06 | Phase 3.1 | Complete |
-| XTND-01 | Phase 4 | Pending |
-| XTND-02 | Phase 4 | Pending |
-| XTND-03 | Phase 4 | Pending |
-| XTND-04 | Phase 4 | Pending |
-| XTND-05 | Phase 4 | Pending |
-| PLSH-01 | Phase 4 | Pending |
-| PLSH-02 | Phase 4 | Pending |
-| PLSH-03 | Phase 4 | Pending |
-| PLSH-04 | Phase 4 | Pending |
+| XTND-01 | Phase 4 | Complete |
+| XTND-02 | Phase 4 | Complete |
+| XTND-03 | Phase 4 | Complete |
+| XTND-04 | Phase 4 | Complete |
+| XTND-05 | Phase 4 | Complete |
+| PLSH-01 | Phase 4 | Complete |
+| PLSH-02 | Phase 4 | Complete |
+| PLSH-03 | Phase 4 | Complete |
+| PLSH-04 | Phase 4 | Complete |
 | PLSH-05 | Phase 4 | Pending |
 
 **Coverage:**

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-02-28T05:36:39.869Z"
+last_updated: "2026-02-28T17:05:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 17
+  completed_plans: 13
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Claude can reliably read, write, organize, and navigate Obsidian notes through a spec-compliant, efficient MCP interface.
-**Current focus:** Phase 3.1 complete — add_vault, remove_vault, list_vaults registered + tested, 153 tests passing; Phase 4 (extended tools + polish) is next
+**Current focus:** Phase 4 plan 01 complete — foundation files (schema-utils.ts, pagination.ts, schemas.ts extensions); 164 tests passing; Phase 4 plan 02 (handlers-extended.ts) is next
 
 ## Current Position
 
-Phase: 3.1 of 4 (Vault Management Tools) — complete
-Plan: 2 of 2 completed in current phase (03.1-01 and 03.1-02 complete)
-Status: Phase 3.1 complete — all 3 vault management tools registered in buildRegistry(), 10 integration tests, 153 tests total passing
-Last activity: 2026-02-27 — Phase 3.1 plan 02 executed (3 min)
+Phase: 4 of 4 (Extended Tools + Polish) — in progress
+Plan: 1 of 5 completed in current phase (04-01 complete)
+Status: Phase 4 plan 01 complete — schema-utils.ts, pagination.ts created, 5 new Zod schemas + cursor fields added to schemas.ts, 164 tests passing
+Last activity: 2026-02-28 — Phase 4 plan 01 executed (8 min)
 
-Progress: [████████░░] 80% (3.1/4 phases complete, 12 plans executed)
+Progress: [████████░░] 82% (4/4 phases in progress, 13 plans executed)
 
 ## Performance Metrics
 
@@ -43,9 +43,10 @@ Progress: [████████░░] 80% (3.1/4 phases complete, 12 plans 
 | 01-quality-foundation | 5 | 60 min | 12 min |
 | 02-registry-link-tools | 3 | 12 min | 4 min |
 | 03-lazy-loading | 2 | 5 min | 2.5 min |
+| 04-extended-tools-polish P01 | 1 | 8 min | 8 min |
 
 **Recent Trend:**
-- Last 10 plans: 35m, 7m, 5m, 5m, 8m, 4m, 3m, 5m, 4m, 1m
+- Last 10 plans: 35m, 7m, 5m, 5m, 8m, 4m, 3m, 5m, 4m, 1m, 8m
 - Trend: fast (additive pattern implementation)
 
 *Updated after each plan completion*
@@ -98,6 +99,9 @@ Recent decisions affecting current work:
 - [03.1-02]: handlers-vault.test.ts uses vi.mock('fs/promises') with { default: { ... } } shape to match default import in handlers-vault.ts
 - [03.1-02]: makeMockConfig() factory function (not const) ensures fresh config per test — prevents cross-test mutation from Object.assign(config, reloaded)
 - [03.1-02]: 3 vault tools registered under 'Vault Management' category with alwaysLoaded: false — tool count is now 22 (20 feature + 2 meta)
+- [Phase 04-extended-tools-polish]: withExamples() spreads property objects — safe since zodToJsonSchema returns a fresh object per call
+- [Phase 04-extended-tools-polish]: PAGE_SIZE = 50 hardcoded in pagination.ts — simple constant, configurable via parameter if needed
+- [Phase 04-extended-tools-polish]: GetWeeklyNoteSchema uses week_folder/date_format input params instead of VaultConfig fields — avoids schema migration
 
 ### Roadmap Evolution
 
@@ -114,6 +118,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-27
-Stopped at: Phase 3.1 plan 02 complete — vault tool registry wiring + integration tests (4d949d2, 104ca6f, c7de828)
+Last session: 2026-02-28
+Stopped at: Phase 4 plan 01 complete — schema-utils.ts, pagination.ts, schemas.ts extensions (84b5cc3, 94378f6, 25fdd91)
 Resume file: None
