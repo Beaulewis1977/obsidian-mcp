@@ -85,7 +85,7 @@ Plans:
 
 Plans:
 - [x] 03.1-01-PLAN.md — Platform layer (obsidian-config.ts), config split-brain fix, Zod schemas, all 3 vault handlers
-- [ ] 03.1-02-PLAN.md — Registry wiring in buildRegistry(), handler tests, lazy-loading count update, pre-commit gate
+- [x] 03.1-02-PLAN.md — Registry wiring in buildRegistry(), handler tests, lazy-loading count update, pre-commit gate
 
 ### Phase 4: Extended Tools + Polish
 **Goal**: Five additional tools are available, all tools carry per-property input examples, high-volume list tools support cursor pagination, and API_REFERENCE.md reflects the full final tool surface
@@ -108,5 +108,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Quality Foundation | 5/5 | Complete | 2026-02-27 |
 | 2. Registry + Link Tools | 3/3 | Complete   | 2026-02-27 |
 | 3. Lazy Loading | 2/2 | Complete   | 2026-02-28 |
-| 3.1. Vault Management Tools | 1/2 | In Progress | - |
+| 3.1. Vault Management Tools | 2/2 | Complete | 2026-02-27 |
 | 4. Extended Tools + Polish | 0/TBD | Not started | - |

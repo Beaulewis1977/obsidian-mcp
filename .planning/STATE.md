@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-02-28T03:45:00Z"
+last_updated: "2026-02-28T05:31:00Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 12
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Claude can reliably read, write, organize, and navigate Obsidian notes through a spec-compliant, efficient MCP interface.
-**Current focus:** Phase 3 complete — lazy loading with discover_tools + enable_tool meta-tools, 133 tests passing; Phase 4 (extended tools + polish) is next
+**Current focus:** Phase 3.1 complete — add_vault, remove_vault, list_vaults registered + tested, 153 tests passing; Phase 4 (extended tools + polish) is next
 
 ## Current Position
 
-Phase: 3.1 of 4 (Vault Management Tools) — in-progress
-Plan: 1 of 2 completed in current phase (03.1-01 complete)
-Status: Phase 3.1 plan 01 complete — obsidian-config.ts platform module, getActiveConfigPath split-brain fix, AddVaultSchema/RemoveVaultSchema/ListVaultsSchema, handleAddVault/handleRemoveVault/handleListVaults; 143 tests passing
-Last activity: 2026-02-27 — Phase 3.1 plan 01 executed (4 min)
+Phase: 3.1 of 4 (Vault Management Tools) — complete
+Plan: 2 of 2 completed in current phase (03.1-01 and 03.1-02 complete)
+Status: Phase 3.1 complete — all 3 vault management tools registered in buildRegistry(), 10 integration tests, 153 tests total passing
+Last activity: 2026-02-27 — Phase 3.1 plan 02 executed (3 min)
 
-Progress: [███████░░░] 75% (3/4 phases complete, 11 plans executed)
+Progress: [████████░░] 80% (3.1/4 phases complete, 12 plans executed)
 
 ## Performance Metrics
 
@@ -95,6 +95,9 @@ Recent decisions affecting current work:
 - [03.1-01]: getActiveConfigPath() iterates getConfigPaths() and returns first accessible path — fixes split-brain where saveConfig() always wrote to ~/.obsidian-mcp/config.json regardless of which config was loaded
 - [03.1-01]: WSL Obsidian config path derived from os.homedir().split('/').pop() for Windows username — no env var dependency
 - [03.1-01]: handleRemoveVault guards: confirm:true required, last vault blocked, default vault blocked — all guard via createErrorResponse (no throws)
+- [03.1-02]: handlers-vault.test.ts uses vi.mock('fs/promises') with { default: { ... } } shape to match default import in handlers-vault.ts
+- [03.1-02]: makeMockConfig() factory function (not const) ensures fresh config per test — prevents cross-test mutation from Object.assign(config, reloaded)
+- [03.1-02]: 3 vault tools registered under 'Vault Management' category with alwaysLoaded: false — tool count is now 22 (20 feature + 2 meta)
 
 ### Roadmap Evolution
 
@@ -112,5 +115,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Phase 3.1 plan 01 complete — platform layer + schemas + handlers committed (9104aa7, ac33d80)
+Stopped at: Phase 3.1 plan 02 complete — vault tool registry wiring + integration tests (4d949d2, 104ca6f, c7de828)
 Resume file: None
