@@ -2,13 +2,26 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
+status: unknown
+last_updated: "2026-02-28T23:09:54.804Z"
+progress:
+  total_phases: 5
+  completed_phases: 4
+  total_plans: 17
+  completed_plans: 14
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
 status: in-progress
 last_updated: "2026-02-28T17:05:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 17
-  completed_plans: 13
+  completed_plans: 15
 ---
 
 # Project State
@@ -18,16 +31,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Claude can reliably read, write, organize, and navigate Obsidian notes through a spec-compliant, efficient MCP interface.
-**Current focus:** Phase 4 plan 01 complete — foundation files (schema-utils.ts, pagination.ts, schemas.ts extensions); 164 tests passing; Phase 4 plan 02 (handlers-extended.ts) is next
+**Current focus:** Phase 4 plan 03 complete — cursor pagination wired to handleListNotes, handleSearchNotes, handleSearchTags; 172 tests passing; Phase 4 plan 04 (registry + outputSchema wiring) is next
 
 ## Current Position
 
 Phase: 4 of 4 (Extended Tools + Polish) — in progress
-Plan: 1 of 5 completed in current phase (04-01 complete)
-Status: Phase 4 plan 01 complete — schema-utils.ts, pagination.ts created, 5 new Zod schemas + cursor fields added to schemas.ts, 164 tests passing
-Last activity: 2026-02-28 — Phase 4 plan 01 executed (8 min)
+Plan: 3 of 5 completed in current phase (04-01, 04-03 complete; 04-02 parallel)
+Status: Phase 4 plan 03 complete — cursor pagination wired to handleListNotes, handleSearchNotes, handleSearchTags; 172 tests passing
+Last activity: 2026-02-28 — Phase 4 plan 03 executed (2 min)
 
-Progress: [████████░░] 82% (4/4 phases in progress, 13 plans executed)
+Progress: [████████░░] 88% (4/4 phases in progress, 15 plans executed)
 
 ## Performance Metrics
 
@@ -44,12 +57,14 @@ Progress: [████████░░] 82% (4/4 phases in progress, 13 plans
 | 02-registry-link-tools | 3 | 12 min | 4 min |
 | 03-lazy-loading | 2 | 5 min | 2.5 min |
 | 04-extended-tools-polish P01 | 1 | 8 min | 8 min |
+| 04-extended-tools-polish P03 | 1 | 2 min | 2 min |
 
 **Recent Trend:**
 - Last 10 plans: 35m, 7m, 5m, 5m, 8m, 4m, 3m, 5m, 4m, 1m, 8m
 - Trend: fast (additive pattern implementation)
 
 *Updated after each plan completion*
+| Phase 04-extended-tools-polish P03 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -102,6 +117,8 @@ Recent decisions affecting current work:
 - [Phase 04-extended-tools-polish]: withExamples() spreads property objects — safe since zodToJsonSchema returns a fresh object per call
 - [Phase 04-extended-tools-polish]: PAGE_SIZE = 50 hardcoded in pagination.ts — simple constant, configurable via parameter if needed
 - [Phase 04-extended-tools-polish]: GetWeeklyNoteSchema uses week_folder/date_format input params instead of VaultConfig fields — avoids schema migration
+- [Phase 04-extended-tools-polish]: total in response always reflects FULL unpaginated count — LLM clients need total to know how many items exist
+- [Phase 04-extended-tools-polish]: nextCursor spread conditionally via ...(nextCursor !== undefined ? { nextCursor } : {}) — keeps JSON clean
 
 ### Roadmap Evolution
 
@@ -119,5 +136,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Phase 4 plan 01 complete — schema-utils.ts, pagination.ts, schemas.ts extensions (84b5cc3, 94378f6, 25fdd91)
+Stopped at: Phase 4 plan 03 complete — pagination wired to handleListNotes, handleSearchNotes, handleSearchTags (091d99a, 3fa08de)
 Resume file: None
