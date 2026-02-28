@@ -98,6 +98,23 @@ function getConfigPaths(): string[] {
 }
 
 /**
+ * Return the path of the config file currently in use.
+ * Iterates getConfigPaths() and returns the first that exists on disk.
+ * Returns null if running on defaults (no config file found).
+ */
+export async function getActiveConfigPath(): Promise<string | null> {
+  for (const p of getConfigPaths()) {
+    try {
+      await fs.access(p);
+      return p;
+    } catch {
+      // not found, try next
+    }
+  }
+  return null;
+}
+
+/**
  * Load configuration from file
  */
 export async function loadConfig(): Promise<ServerConfig> {
