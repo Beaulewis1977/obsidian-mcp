@@ -34,6 +34,27 @@ async function withVaultMutationLock<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 // ---------------------------------------------------------------------------
+// Atomic MCP config write
+// Mirrors the temp-file + rename pattern used in writeObsidianConfig so that
+// a process crash mid-write cannot leave config.json in a partial state.
+// ---------------------------------------------------------------------------
+
+async function writeMcpConfigAtomic(configPath: string, data: unknown): Promise<void> {
+  const dir = path.dirname(configPath);
+  const tmpPath = path.join(
+    dir,
+    `.mcp-config-tmp-${Date.now()}-${process.pid}-${Math.random().toString(36).slice(2)}`
+  );
+  try {
+    await fs.writeFile(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
+    await fs.rename(tmpPath, configPath);
+  } catch (err) {
+    await fs.unlink(tmpPath).catch(() => {});
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // handleAddVault
 // ---------------------------------------------------------------------------
 
@@ -132,7 +153,7 @@ export async function handleAddVault(
     };
 
     rawConfig.vaults.push(newVaultEntry);
-    await fs.writeFile(configPath, JSON.stringify(rawConfig, null, 2), 'utf-8');
+    await writeMcpConfigAtomic(configPath, rawConfig);
     mcp_registered = true;
 
     // 5. Hot-reload in-memory config
@@ -245,7 +266,7 @@ export async function handleRemoveVault(
       const originalLength = rawConfig.vaults?.length ?? 0;
       rawConfig.vaults = (rawConfig.vaults ?? []).filter(v => v.name !== args.name);
       if (rawConfig.vaults.length < originalLength) {
-        await fs.writeFile(configPath, JSON.stringify(rawConfig, null, 2), 'utf-8');
+        await writeMcpConfigAtomic(configPath, rawConfig);
         mcp_unregistered = true;
       }
     }

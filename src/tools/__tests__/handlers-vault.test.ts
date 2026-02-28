@@ -93,10 +93,15 @@ describe('handleAddVault', () => {
     // Verify key side-effects
     expect(mockFs.mkdir).toHaveBeenCalledWith('/vaults/new', { recursive: true });
     expect(mockWriteObsidianConfig).toHaveBeenCalled();
+    // Atomic write: writeFile goes to a temp file, rename moves it to the final path
     expect(mockFs.writeFile).toHaveBeenCalledWith(
-      '/config/config.json',
+      expect.stringContaining('.mcp-config-tmp-'),
       expect.stringContaining('new-vault'),
       'utf-8'
+    );
+    expect(mockFs.rename).toHaveBeenCalledWith(
+      expect.stringContaining('.mcp-config-tmp-'),
+      '/config/config.json'
     );
   });
 
@@ -187,11 +192,15 @@ describe('handleRemoveVault', () => {
 
     // Verify obsidian config was updated
     expect(mockWriteObsidianConfig).toHaveBeenCalled();
-    // Verify MCP config was updated
+    // Verify MCP config was updated atomically (temp file + rename)
     expect(mockFs.writeFile).toHaveBeenCalledWith(
-      '/config/config.json',
+      expect.stringContaining('.mcp-config-tmp-'),
       expect.not.stringContaining('"secondary"'),
       'utf-8'
+    );
+    expect(mockFs.rename).toHaveBeenCalledWith(
+      expect.stringContaining('.mcp-config-tmp-'),
+      '/config/config.json'
     );
   });
 
