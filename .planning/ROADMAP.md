@@ -13,7 +13,7 @@ Milestone 2 takes a working 13-tool server and makes it the best Obsidian MCP im
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Quality Foundation** - Fix critical bugs, upgrade SDK, modernize to MCP 2025-11-25 spec, add missing test coverage
-- [x] **Phase 2: Registry + Link Tools** - Replace static switch dispatch with ToolRegistry architecture, add 4 high-value link/graph tools (completed 2026-02-27)
+- [x] **Phase 2: Registry + Link Tools** - Replace static switch dispatch with ToolRegistry architecture, add 4 high-value link/graph tools (completed 2026-02-27)
 - [ ] **Phase 3: Lazy Loading** - Add discover_tools + enable_tool meta-tools, wire config-gated lazy loading for 80%+ token reduction
 - [ ] **Phase 4: Extended Tools + Polish** - Add 5 extended tools, per-property input examples, pagination, and final docs
 
@@ -63,7 +63,11 @@ Plans:
   2. Calling `enable_tool` with a valid tool name enables that tool in the session; the response body includes the full tool schema; `notifications/tools/list_changed` is emitted (non-blocking fire-and-forget, not awaited before the response)
   3. Calling `discover_tools` returns all registered tools — name, category, description, and enabled status — regardless of lazy-loading state
   4. With `lazy_loading: false`, `ListTools` returns all tools at session start (backward-compat behavior unchanged)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Core implementation: registry resetToAlwaysLoaded(), meta-tool schemas, handlers-meta.ts, buildRegistry rewrite with lazyLoading gate
+- [ ] 03-02-PLAN.md — Server wiring (listChanged capability, oninitialized hook) + integration tests for all LAZY-* requirements
 
 ### Phase 4: Extended Tools + Polish
 **Goal**: Five additional tools are available, all tools carry per-property input examples, high-volume list tools support cursor pagination, and API_REFERENCE.md reflects the full final tool surface
@@ -85,5 +89,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Quality Foundation | 5/5 | Complete | 2026-02-27 |
 | 2. Registry + Link Tools | 3/3 | Complete   | 2026-02-27 |
-| 3. Lazy Loading | 0/TBD | Not started | - |
+| 3. Lazy Loading | 0/2 | In Progress | - |
 | 4. Extended Tools + Polish | 0/TBD | Not started | - |
