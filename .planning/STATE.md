@@ -80,7 +80,7 @@ Recent decisions affecting current work:
 - [02-02]: parseWikilinks uses regex NOT remark-wiki-link v2.0.1 — library stores [[Note|Alias]] as literal "Note|Alias" and ignores ![[embed]]; regex handles all 5 Obsidian formats correctly
 - [02-02]: buildVaultGraph uses sequential for...of reads, not Promise.all — avoids opening 1000+ file handles simultaneously on large vaults
 - [02-02]: nameToPath shortest-path-wins: sort notes by path.length ascending before building basename lookup Map
-- [02-02]: handleGetLinkGraph folder filter: scoped listNotes call but full-vault nameToPath for cross-folder link resolution correctness
+- [02-02]: handleGetLinkGraph folder filter: full-vault graph build with nameToPath for cross-folder link resolution correctness
 - [Phase 02]: 19 integration tests cover all 4 link handlers — buildVaultGraph only creates edges for resolved vault notes (image.png embed is correctly absent from edges)
 
 ### Pending Todos

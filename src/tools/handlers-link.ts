@@ -61,11 +61,25 @@ export async function handleGetLinkGraph(
     }
     const total_nodes = nodeValues.length;
     const total_edges = filteredEdges.length;
-    const orphan_count = nodeValues.filter(n => n.incoming.length === 0 && n.outgoing.length === 0).length;
+
+    // Compute degrees from filteredEdges so stats are consistent with returned edges
+    const inDeg = new Map<string, number>();
+    const outDeg = new Map<string, number>();
+    for (const n of nodeValues) {
+      inDeg.set(n.path, 0);
+      outDeg.set(n.path, 0);
+    }
+    for (const e of filteredEdges) {
+      outDeg.set(e.source, (outDeg.get(e.source) ?? 0) + 1);
+      if (inDeg.has(e.target)) {
+        inDeg.set(e.target, (inDeg.get(e.target) ?? 0) + 1);
+      }
+    }
+    const orphan_count = nodeValues.filter(n => (inDeg.get(n.path) ?? 0) === 0 && (outDeg.get(n.path) ?? 0) === 0).length;
     const avg_connections = total_nodes === 0
       ? 0
       : Math.round(
-          (nodeValues.reduce((sum, n) => sum + n.incoming.length + n.outgoing.length, 0) / total_nodes) * 100,
+          (nodeValues.reduce((sum, n) => sum + (inDeg.get(n.path) ?? 0) + (outDeg.get(n.path) ?? 0), 0) / total_nodes) * 100,
         ) / 100;
 
     // Top 10 most connected nodes
@@ -73,9 +87,9 @@ export async function handleGetLinkGraph(
       .map(n => ({
         path: n.path,
         name: n.name,
-        total_connections: n.incoming.length + n.outgoing.length,
-        incoming_count: n.incoming.length,
-        outgoing_count: n.outgoing.length,
+        total_connections: (inDeg.get(n.path) ?? 0) + (outDeg.get(n.path) ?? 0),
+        incoming_count: inDeg.get(n.path) ?? 0,
+        outgoing_count: outDeg.get(n.path) ?? 0,
       }))
       .sort((a, b) => b.total_connections - a.total_connections)
       .slice(0, 10);
@@ -93,8 +107,8 @@ export async function handleGetLinkGraph(
         path: n.path,
         name: n.name,
         folder: n.folder,
-        outgoing_count: n.outgoing.length,
-        incoming_count: n.incoming.length,
+        outgoing_count: outDeg.get(n.path) ?? 0,
+        incoming_count: inDeg.get(n.path) ?? 0,
         tags: n.tags,
       })),
       edges: filteredEdges,
@@ -203,14 +217,16 @@ export async function handleSearchTags(
         continue;
       }
 
-      // Extract and normalize frontmatter tags
+      // Extract and normalize frontmatter tags (handles both array and scalar YAML)
       const fmTags: string[] = [];
-      if (Array.isArray(note.frontmatter?.tags)) {
-        for (const tag of note.frontmatter.tags) {
-          if (typeof tag === 'string') {
-            const normalized = tag.startsWith('#') ? tag.slice(1).trim() : tag.trim();
-            if (normalized) fmTags.push(normalized);
-          }
+      const rawTags = note.frontmatter?.tags;
+      const tagValues = Array.isArray(rawTags)
+        ? rawTags
+        : (typeof rawTags === 'string' ? [rawTags] : []);
+      for (const tag of tagValues) {
+        if (typeof tag === 'string') {
+          const normalized = tag.startsWith('#') ? tag.slice(1).trim() : tag.trim();
+          if (normalized) fmTags.push(normalized);
         }
       }
 
@@ -328,15 +344,22 @@ export async function handleGetOutgoingLinks(
         const hasExtension = /\.[^/\\]+$/.test(target);
         const hasMarkdownExt = target.toLowerCase().endsWith('.md');
 
+        // Validate path before probing filesystem to prevent traversal outside vault
+        const safeExists = async (candidate: string): Promise<boolean> => {
+          const check = validatePath(candidate, vault.path);
+          if (!check.valid) return false;
+          return noteExists(vault.path, candidate);
+        };
+
         let exists = false;
 
         if (link.isEmbed || (hasExtension && !hasMarkdownExt)) {
-          exists = await noteExists(vault.path, target);
+          exists = await safeExists(target);
         } else {
-          exists = await noteExists(vault.path, target);
+          exists = await safeExists(target);
           if (!exists) {
             const targetWithExt = hasMarkdownExt ? target : target + '.md';
-            exists = await noteExists(vault.path, targetWithExt);
+            exists = await safeExists(targetWithExt);
           }
         }
         if (!exists) brokenCount++;
