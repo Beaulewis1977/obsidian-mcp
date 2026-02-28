@@ -4,6 +4,8 @@
 
 This document provides a complete reference for all MCP tools exposed by the Obsidian MCP Server.
 
+> **Per-property examples:** All tool input schemas include per-property `examples` arrays (JSON Schema 2020-12) to help LLM clients construct accurate tool calls.
+
 ---
 
 ## Core Operations
@@ -178,6 +180,7 @@ List all notes in vault or folder with optional filtering.
     pattern?: string;              // Filename pattern (glob)
   };
   include_metadata?: boolean;      // Include file metadata (default: false)
+  cursor?: string;                 // Pagination cursor from previous response (omit for first page)
 }
 ```
 
@@ -195,8 +198,11 @@ List all notes in vault or folder with optional filtering.
     };
   }>;
   total: number;
+  nextCursor?: string;             // Pass to next call for the following page; absent on last page
 }
 ```
+
+> **Pagination:** `total` is always the full unpaginated count. Pass `nextCursor` back as `cursor` on the next call to retrieve subsequent pages. Server-side page size is 50.
 
 ---
 
@@ -210,6 +216,7 @@ Search vault content using Obsidian's search or filesystem grep.
   query: string;                   // Search query (supports Obsidian syntax)
   vault?: string;
   mode?: "obsidian" | "filesystem"; // Default: "filesystem" (falls back to filesystem if Obsidian API is unavailable)
+  cursor?: string;                 // Pagination cursor from previous response (omit for first page)
 }
 ```
 
@@ -225,8 +232,11 @@ Search vault content using Obsidian's search or filesystem grep.
     }>;
   }>;
   total: number;
+  nextCursor?: string;             // Pass to next call for the following page; absent on last page
 }
 ```
+
+> **Pagination:** `total` is always the full unpaginated count. Pass `nextCursor` back as `cursor` on the next call to retrieve subsequent pages. Server-side page size is 50.
 
 ---
 
