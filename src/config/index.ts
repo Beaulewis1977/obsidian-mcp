@@ -4,10 +4,16 @@ import path from 'path';
 import os from 'os';
 import dotenv from 'dotenv';
 import { logger } from '../utils/logger.js';
+import { normalizeVaultPathForPlatform } from '../platform/path-converter.js';
 import type { ServerConfig, VaultConfig, RateLimitConfig, FileWatchingConfig } from '../types/index.js';
 
-// Load environment variables
+// Load environment variables from CWD first, then from CONFIG_PATH's directory.
+// When launched by Claude Desktop / external clients, CWD is often not the project
+// directory, so the .env next to config.json is the reliable fallback.
 dotenv.config();
+if (process.env.CONFIG_PATH) {
+  dotenv.config({ path: path.join(path.dirname(process.env.CONFIG_PATH), '.env'), override: false });
+}
 
 const DEFAULT_CONFIG: ServerConfig = {
   version: '1.0',
@@ -92,6 +98,23 @@ function getConfigPaths(): string[] {
 }
 
 /**
+ * Return the path of the config file currently in use.
+ * Iterates getConfigPaths() and returns the first that exists on disk.
+ * Returns null if running on defaults (no config file found).
+ */
+export async function getActiveConfigPath(): Promise<string | null> {
+  for (const p of getConfigPaths()) {
+    try {
+      await fs.access(p);
+      return p;
+    } catch {
+      // not found, try next
+    }
+  }
+  return null;
+}
+
+/**
  * Load configuration from file
  */
 export async function loadConfig(): Promise<ServerConfig> {
@@ -127,7 +150,7 @@ export async function loadConfig(): Promise<ServerConfig> {
       // Substitute environment variables in vault paths and API keys
       mergedConfig.vaults = mergedConfig.vaults.map(vault => ({
         ...vault,
-        path: substituteEnvVar(vault.path),
+        path: normalizeVaultPathForPlatform(substituteEnvVar(vault.path)),
         obsidian_api: vault.obsidian_api ? {
           ...vault.obsidian_api,
           api_key: substituteEnvVar(vault.obsidian_api.api_key || '')

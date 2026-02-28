@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-02-28T03:45:00Z"
+last_updated: "2026-02-28T05:36:39.869Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 12
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Claude can reliably read, write, organize, and navigate Obsidian notes through a spec-compliant, efficient MCP interface.
-**Current focus:** Phase 3 complete — lazy loading with discover_tools + enable_tool meta-tools, 133 tests passing; Phase 4 (extended tools + polish) is next
+**Current focus:** Phase 3.1 complete — add_vault, remove_vault, list_vaults registered + tested, 153 tests passing; Phase 4 (extended tools + polish) is next
 
 ## Current Position
 
-Phase: 3 of 4 (Lazy Loading) — COMPLETE
-Plan: 2 of 2 completed in current phase (03-01 + 03-02 complete)
-Status: Phase 3 complete — discover_tools + enable_tool meta-tools, buildRegistry lazy loading gate, listChanged capability, oninitialized session reset, 17 new integration tests, 133 total tests passing
-Last activity: 2026-02-28 — Phase 3 verified (13/13 must-haves) + UAT (12/12 pass)
+Phase: 3.1 of 4 (Vault Management Tools) — complete
+Plan: 2 of 2 completed in current phase (03.1-01 and 03.1-02 complete)
+Status: Phase 3.1 complete — all 3 vault management tools registered in buildRegistry(), 10 integration tests, 153 tests total passing
+Last activity: 2026-02-27 — Phase 3.1 plan 02 executed (3 min)
 
-Progress: [███████░░░] 75% (3/4 phases complete, 10 plans executed)
+Progress: [████████░░] 80% (3.1/4 phases complete, 12 plans executed)
 
 ## Performance Metrics
 
@@ -91,6 +91,17 @@ Recent decisions affecting current work:
 - [03-02]: lazyLoading = config.lazy_loading !== false — undefined defaults to true (lazy on by default)
 - [03-02]: oninitialized hook guarded by lazyLoading flag — no-op in non-lazy mode; prevents stale session state on client reconnect
 - [03-02]: vi.waitFor() used for fire-and-forget sendToolListChanged assertion in tests — avoids flaky setTimeout-based polling
+- [03.1-01]: obsidian-config.ts uses atomic rename (tmp file in same dir) to avoid partial-write corruption on NTFS/ext4
+- [03.1-01]: getActiveConfigPath() iterates getConfigPaths() and returns first accessible path — fixes split-brain where saveConfig() always wrote to ~/.obsidian-mcp/config.json regardless of which config was loaded
+- [03.1-01]: WSL Obsidian config path derived from os.homedir().split('/').pop() for Windows username — no env var dependency
+- [03.1-01]: handleRemoveVault guards: confirm:true required, last vault blocked, default vault blocked — all guard via createErrorResponse (no throws)
+- [03.1-02]: handlers-vault.test.ts uses vi.mock('fs/promises') with { default: { ... } } shape to match default import in handlers-vault.ts
+- [03.1-02]: makeMockConfig() factory function (not const) ensures fresh config per test — prevents cross-test mutation from Object.assign(config, reloaded)
+- [03.1-02]: 3 vault tools registered under 'Vault Management' category with alwaysLoaded: false — tool count is now 22 (20 feature + 2 meta)
+
+### Roadmap Evolution
+
+- Phase 03.1 inserted after Phase 3: Vault Management Tools (URGENT)
 
 ### Pending Todos
 
@@ -103,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-28
-Stopped at: Phase 3 complete — verified (13/13 must-haves), UAT (12/12 pass), all docs committed
+Last session: 2026-02-27
+Stopped at: Phase 3.1 plan 02 complete — vault tool registry wiring + integration tests (4d949d2, 104ca6f, c7de828)
 Resume file: None

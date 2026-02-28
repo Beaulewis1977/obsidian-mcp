@@ -6,6 +6,13 @@ import path from 'node:path';
 import { logger } from '../utils/logger.js';
 import { pathForObsidian } from './path-converter.js';
 
+/** Full path to cmd.exe — WSL needs the absolute /mnt/c/... path */
+const CMD_EXE = isWSL ? '/mnt/c/Windows/System32/cmd.exe' : 'cmd.exe';
+/** Full path to powershell.exe — more reliable for URI dispatch on WSL */
+const POWERSHELL_EXE = isWSL
+  ? '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe'
+  : 'powershell.exe';
+
 function quoteForCmd(value: string): string {
   const escaped = value.replace(/"/g, '""');
   return `"${escaped}"`;
@@ -47,7 +54,7 @@ export async function openInObsidian(vaultPath: string, notePath?: string): Prom
     if (isWSL) {
       // Launch Windows app from WSL
       const command = buildCmdStartCommand(obsidianPath, args);
-      await execa('cmd.exe', ['/c', command], {
+      await execa(CMD_EXE, ['/c', command], {
         detached: true,
         stdio: 'ignore'
       });
@@ -72,9 +79,27 @@ export async function openInObsidian(vaultPath: string, notePath?: string): Prom
  */
 async function findObsidianExecutable(): Promise<string | null> {
   const localAppData = process.env.LOCALAPPDATA || '';
+  // On WSL, resolve Windows LOCALAPPDATA via cmd.exe
+  let wslLocalAppData = '';
+  if (isWSL) {
+    try {
+      const { stdout } = await execa(CMD_EXE, ['/c', 'echo', '%LOCALAPPDATA%'], { stdio: ['pipe', 'pipe', 'ignore'] });
+      const winPath = stdout.trim();
+      if (winPath && !winPath.includes('%')) {
+        // Convert e.g. C:\Users\kngpnn\AppData\Local → /mnt/c/Users/kngpnn/AppData/Local
+        const drive = winPath[0].toLowerCase();
+        const rest = winPath.slice(3).replace(/\\/g, '/');
+        wslLocalAppData = `/mnt/${drive}/${rest}`;
+      }
+    } catch (err) {
+      logger.debug({ err, isWSL, cmd: CMD_EXE }, 'LOCALAPPDATA resolution via cmd.exe failed; wslLocalAppData will be empty');
+    }
+  }
   const candidates = [
     // Windows user-scoped install (most common — Squirrel installer)
     ...(localAppData ? [path.join(localAppData, 'Programs', 'Obsidian', 'Obsidian.exe')] : []),
+    // WSL: Squirrel installer path via /mnt/c
+    ...(wslLocalAppData ? [path.join(wslLocalAppData, 'Programs', 'Obsidian', 'Obsidian.exe')] : []),
     // Windows machine-wide install
     'C:\\Program Files\\Obsidian\\Obsidian.exe',
     'C:\\Program Files (x86)\\Obsidian\\Obsidian.exe',
@@ -117,39 +142,31 @@ async function findObsidianExecutable(): Promise<string | null> {
 }
 
 /**
- * Open URI using system default handler
+ * Open URI using system default handler.
+ * On WSL, uses PowerShell Start-Process which correctly handles custom protocol
+ * URIs (obsidian://) without mangling &, ?, = characters. cmd.exe /c start
+ * treats & as a command separator, breaking URIs with query parameters.
  */
 export async function openURI(uri: string): Promise<void> {
   try {
     if (isWSL) {
-      if (await commandExists('wslview')) {
-        await execa('wslview', [uri], {
-          detached: true,
-          stdio: 'ignore'
-        });
-      } else if (await commandExists('xdg-open')) {
-        await execa('xdg-open', [uri], {
-          detached: true,
-          stdio: 'ignore'
-        });
-      } else {
-        const command = buildCmdStartCommand(uri, []);
-        await execa('cmd.exe', ['/c', command], {
-          detached: true,
-          stdio: 'ignore'
-        });
-      }
+      // PowerShell single-quoted strings are literal — no metacharacter issues
+      const escaped = uri.replace(/'/g, "''");
+      await execa(POWERSHELL_EXE, [
+        '-NoProfile', '-NonInteractive', '-Command',
+        `Start-Process '${escaped}'`
+      ], { detached: true, stdio: 'ignore' });
     } else if (process.platform === 'win32') {
-      await execa('rundll32.exe', ['url.dll,FileProtocolHandler', uri], {
-        detached: true,
-        stdio: 'ignore'
-      });
+      await execa('powershell.exe', [
+        '-NoProfile', '-NonInteractive', '-Command',
+        `Start-Process '${uri.replace(/'/g, "''")}'`
+      ], { detached: true, stdio: 'ignore' });
     } else if (process.platform === 'darwin') {
       await execa('open', [uri]);
     } else {
       await execa('xdg-open', [uri]);
     }
-    
+
     logger.info({ uri }, 'Opened URI');
   } catch (error) {
     logger.error({ error, uri }, 'Failed to open URI');

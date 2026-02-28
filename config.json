@@ -2,7 +2,7 @@
   "version": "1.0",
   "vaults": [
     {
-      "name": "recipes",
+      "name": "obsidian",
       "path": "${VAULT_PATH}",
       "default": true,
       "obsidian_api": {

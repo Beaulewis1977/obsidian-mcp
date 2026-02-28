@@ -69,6 +69,24 @@ Plans:
 - [x] 03-01-PLAN.md — Core implementation: registry resetToAlwaysLoaded(), meta-tool schemas, handlers-meta.ts, buildRegistry rewrite with lazyLoading gate
 - [x] 03-02-PLAN.md — Server wiring (listChanged capability, oninitialized hook) + integration tests for all LAZY-* requirements
 
+### Phase 03.1: Vault Management Tools (INSERTED)
+
+**Goal:** Three vault management tools (add_vault, remove_vault, list_vaults) let agents create, remove, and list Obsidian vaults end-to-end — handling folder creation, obsidian.json registration, MCP config.json updates, and in-memory hot-reload — without manual config editing
+**Requirements**: VAULT-01, VAULT-02, VAULT-03, VAULT-04, VAULT-05, VAULT-06
+**Depends on:** Phase 3
+**Success Criteria** (what must be TRUE):
+  1. `add_vault` creates folder on disk, registers in obsidian.json and config.json, hot-reloads in-memory config
+  2. `remove_vault` unregisters from both configs, optionally deletes folder with double confirmation, refuses to remove last or default vault
+  3. `list_vaults` cross-references obsidian.json with config.json, reports disk status and note count per vault
+  4. All 3 tools work on Windows native, WSL, macOS, and Linux
+  5. Tools are registered in ToolRegistry under "Vault Management" category with alwaysLoaded: false
+  6. Pre-commit gate (tsc + vitest + tsup) passes clean with all new tests
+**Plans:** 2/2 plans complete
+
+Plans:
+- [x] 03.1-01-PLAN.md — Platform layer (obsidian-config.ts), config split-brain fix, Zod schemas, all 3 vault handlers
+- [x] 03.1-02-PLAN.md — Registry wiring in buildRegistry(), handler tests, lazy-loading count update, pre-commit gate
+
 ### Phase 4: Extended Tools + Polish
 **Goal**: Five additional tools are available, all tools carry per-property input examples, high-volume list tools support cursor pagination, and API_REFERENCE.md reflects the full final tool surface
 **Depends on**: Phase 3
@@ -90,4 +108,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Quality Foundation | 5/5 | Complete | 2026-02-27 |
 | 2. Registry + Link Tools | 3/3 | Complete   | 2026-02-27 |
 | 3. Lazy Loading | 2/2 | Complete   | 2026-02-28 |
+| 3.1. Vault Management Tools | 2/2 | Complete | 2026-02-27 |
 | 4. Extended Tools + Polish | 0/TBD | Not started | - |

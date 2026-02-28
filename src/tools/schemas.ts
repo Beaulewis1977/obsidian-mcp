@@ -1,5 +1,28 @@
 import { z } from 'zod';
 
+/** Coerce "true"/"false" strings to boolean (common from CLI/bash clients) */
+const coerceBool = z.preprocess(
+  (val) => {
+    if (typeof val === 'string') {
+      if (val === 'true') return true;
+      if (val === 'false') return false;
+    }
+    return val;
+  },
+  z.boolean()
+);
+
+/** Coerce JSON strings to objects (common from CLI/bash clients) */
+const coerceRecord = z.preprocess(
+  (val) => {
+    if (typeof val === 'string') {
+      try { return JSON.parse(val); } catch { return val; }
+    }
+    return val;
+  },
+  z.record(z.any())
+);
+
 /**
  * Zod schemas for tool input validation
  */
@@ -12,9 +35,9 @@ export const ReadNoteSchema = z.object({
 export const CreateNoteSchema = z.object({
   path: z.string().min(1).describe('Path for the new note (e.g., "folder/note.md")'),
   content: z.string().describe('Main content of the note (markdown)'),
-  frontmatter: z.record(z.any()).optional().describe('YAML frontmatter (optional)'),
+  frontmatter: coerceRecord.optional().describe('YAML frontmatter (optional)'),
   vault: z.string().optional().describe('Vault name (optional)'),
-  open_in_obsidian: z.boolean().default(false).describe('Open the note in Obsidian after creation')
+  open_in_obsidian: coerceBool.default(false).describe('Open the note in Obsidian after creation')
 });
 
 export const EditNoteSchema = z.object({
@@ -29,7 +52,7 @@ export const EditNoteSchema = z.object({
 export const DeleteNoteSchema = z.object({
   path: z.string().min(1).describe('Path to the note to delete'),
   vault: z.string().optional().describe('Vault name (optional)'),
-  confirm: z.boolean().describe('Must be true to confirm deletion')
+  confirm: coerceBool.describe('Must be true to confirm deletion')
 });
 
 export const ListNotesSchema = z.object({
@@ -40,7 +63,7 @@ export const ListNotesSchema = z.object({
     modified_since: z.string().optional().describe('ISO date (e.g., "2024-01-01")'),
     pattern: z.string().optional().describe('Filename pattern (glob)')
   }).optional().describe('Optional filters'),
-  include_metadata: z.boolean().default(false).describe('Include file metadata')
+  include_metadata: coerceBool.default(false).describe('Include file metadata')
 });
 
 export const SearchNotesSchema = z.object({
@@ -54,20 +77,20 @@ export const MoveNoteSchema = z.object({
   source_path: z.string().min(1).describe('Current path of the note'),
   target_path: z.string().min(1).describe('New path for the note'),
   vault: z.string().optional().describe('Vault name (optional)'),
-  update_links: z.boolean().default(false).describe('Update wikilinks (not implemented in MVP)')
+  update_links: coerceBool.default(false).describe('Update wikilinks (not implemented in MVP)')
 });
 
 export const UpdateFrontmatterSchema = z.object({
   path: z.string().min(1).describe('Path to the note'),
   vault: z.string().optional().describe('Vault name (optional)'),
-  updates: z.record(z.any()).describe('Key-value pairs to update in frontmatter'),
-  merge: z.boolean().default(true).describe('Merge (true) or replace (false) frontmatter')
+  updates: coerceRecord.describe('Key-value pairs to update in frontmatter'),
+  merge: coerceBool.default(true).describe('Merge (true) or replace (false) frontmatter')
 });
 
 export const GetDailyNoteSchema = z.object({
   date: z.string().optional().describe('Date in YYYY-MM-DD format (default: today)'),
   vault: z.string().optional().describe('Vault name (optional)'),
-  create_if_missing: z.boolean().default(true).describe('Create the daily note if it does not exist')
+  create_if_missing: coerceBool.default(true).describe('Create the daily note if it does not exist')
 });
 
 export const OpenInObsidianSchema = z.object({
@@ -110,9 +133,31 @@ export const SearchTagsSchema = z.object({
 export const GetOutgoingLinksSchema = z.object({
   path: z.string().min(1).describe('Path to the note'),
   vault: z.string().optional().describe('Vault name (optional)'),
-  include_embeds: z.boolean().default(true).describe('Include ![[embed]] links'),
-  resolve: z.boolean().default(false).describe('Check if each link target exists in vault'),
+  include_embeds: coerceBool.default(true).describe('Include ![[embed]] links'),
+  resolve: coerceBool.default(false).describe('Check if each link target exists in vault'),
 });
+
+// --- Vault Management tool schemas (Phase 3.1) ---
+
+export const AddVaultSchema = z.object({
+  name: z.string().min(1).describe('Unique display name for the vault (e.g., "Personal Notes")'),
+  path: z.string().min(1).describe('Absolute path to the vault folder on disk'),
+  create_folder: coerceBool.default(true).describe('Create the folder if it does not exist (default: true)'),
+  default: coerceBool.default(false).describe('Set this vault as the default vault (default: false)'),
+  obsidian_api: z.object({
+    enabled: coerceBool.describe('Enable the Obsidian REST API for this vault'),
+    url: z.string().describe('Base URL of the Obsidian REST API (e.g., "http://localhost:27123")'),
+    api_key: z.string().optional().describe('API key for the Obsidian REST API'),
+  }).optional().describe('Optional Obsidian REST API configuration'),
+});
+
+export const RemoveVaultSchema = z.object({
+  name: z.string().min(1).describe('Name of the vault to remove'),
+  delete_folder: coerceBool.default(false).describe('Delete the vault folder from disk (default: false, only unregisters)'),
+  confirm: coerceBool.describe('Must be true to confirm the removal — this action cannot be undone'),
+});
+
+export const ListVaultsSchema = z.object({});
 
 // --- Meta-tool schemas (Phase 3 lazy loading) ---
 
@@ -148,3 +193,6 @@ export type SearchTagsInput = z.infer<typeof SearchTagsSchema>;
 export type GetOutgoingLinksInput = z.infer<typeof GetOutgoingLinksSchema>;
 export type DiscoverToolsInput = z.infer<typeof DiscoverToolsSchema>;
 export type EnableToolInput = z.infer<typeof EnableToolSchema>;
+export type AddVaultInput = z.infer<typeof AddVaultSchema>;
+export type RemoveVaultInput = z.infer<typeof RemoveVaultSchema>;
+export type ListVaultsInput = z.infer<typeof ListVaultsSchema>;
