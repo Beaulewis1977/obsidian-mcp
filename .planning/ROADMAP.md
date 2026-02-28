@@ -81,7 +81,7 @@ Plans:
   4. All 3 tools work on Windows native, WSL, macOS, and Linux
   5. Tools are registered in ToolRegistry under "Vault Management" category with alwaysLoaded: false
   6. Pre-commit gate (tsc + vitest + tsup) passes clean with all new tests
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 03.1-01-PLAN.md — Platform layer (obsidian-config.ts), config split-brain fix, Zod schemas, all 3 vault handlers
