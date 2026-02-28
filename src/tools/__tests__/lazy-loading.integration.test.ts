@@ -151,7 +151,21 @@ describe('discover_tools handler', () => {
 
     expect(structured.total).toBe(textPayload.total);
     expect(structured.enabled_count).toBe(textPayload.enabled_count);
+    expect(structured.total_enabled).toBe(textPayload.total_enabled);
     expect(structured.tools.length).toBe(textPayload.tools.length);
+  });
+
+  it('total_enabled reflects unfiltered global enabled count', () => {
+    // With lazy_loading: true, only 2 meta-tools are enabled globally
+    const result = handleDiscoverTools(registry, mockConfig, { category: 'Core CRUD' });
+    const payload = JSON.parse(result.content[0].text as string);
+
+    // enabled_count is from filtered results (Core CRUD tools, none enabled in lazy mode)
+    expect(payload.enabled_count).toBe(0);
+    // total_enabled is from ALL tools (2 meta-tools are enabled globally)
+    expect(payload.total_enabled).toBe(2);
+    // total is still all 19 tools (unfiltered)
+    expect(payload.total).toBe(19);
   });
 });
 

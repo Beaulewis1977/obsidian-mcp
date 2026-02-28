@@ -51,6 +51,7 @@ export function handleDiscoverTools(
     categories,
     total: allTools.length,
     enabled_count: tools.filter(t => t.enabled).length,
+    total_enabled: allTools.filter(r => registry.isEnabled(r.definition.name)).length,
   };
 
   return {
@@ -86,14 +87,17 @@ export function handleEnableTool(
 
   const alreadyEnabled = registry.isEnabled(tool_name);
 
-  registry.enable(tool_name);
+  // Skip enable + notification if tool is already enabled (avoids unnecessary work)
+  if (!alreadyEnabled) {
+    registry.enable(tool_name);
 
-  // Fire-and-forget: do NOT await — prevents race between enable_tool response
-  // and notification delivery. Catch silences "Not connected" in tests.
-  if (server) {
-    void Promise.resolve()
-      .then(() => server.sendToolListChanged())
-      .catch(() => {});
+    // Fire-and-forget: do NOT await — prevents race between enable_tool response
+    // and notification delivery. Catch silences "Not connected" in tests.
+    if (server) {
+      void Promise.resolve()
+        .then(() => server.sendToolListChanged())
+        .catch(() => {});
+    }
   }
 
   const payload = {
