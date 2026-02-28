@@ -114,6 +114,20 @@ export const GetOutgoingLinksSchema = z.object({
   resolve: z.boolean().default(false).describe('Check if each link target exists in vault'),
 });
 
+// --- Meta-tool schemas (Phase 3 lazy loading) ---
+
+export const DiscoverToolsSchema = z.object({
+  query: z.string().optional()
+    .describe('Filter tools by keyword (searches name and description)'),
+  category: z.string().optional()
+    .describe('Filter by category name (e.g. "Core CRUD", "Graph", "Meta")'),
+});
+
+export const EnableToolSchema = z.object({
+  tool_name: z.string().min(1)
+    .describe('Name of the tool to enable in the current session'),
+});
+
 // Type exports
 export type ReadNoteInput = z.infer<typeof ReadNoteSchema>;
 export type CreateNoteInput = z.infer<typeof CreateNoteSchema>;
@@ -132,3 +146,5 @@ export type GetLinkGraphInput = z.infer<typeof GetLinkGraphSchema>;
 export type FindOrphansInput = z.infer<typeof FindOrphansSchema>;
 export type SearchTagsInput = z.infer<typeof SearchTagsSchema>;
 export type GetOutgoingLinksInput = z.infer<typeof GetOutgoingLinksSchema>;
+export type DiscoverToolsInput = z.infer<typeof DiscoverToolsSchema>;
+export type EnableToolInput = z.infer<typeof EnableToolSchema>;
