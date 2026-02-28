@@ -88,7 +88,7 @@ File: `src/tools/__tests__/lazy-loading.integration.test.ts` (241 lines)
 
 ## Verification
 
-```
+```bash
 grep "listChanged: true" src/index.ts        ✓ capability declared
 grep "resetToAlwaysLoaded" src/index.ts      ✓ session reset wired
 grep "buildRegistry(lazyLoading" src/index.ts ✓ config flag passed
@@ -111,7 +111,7 @@ None — plan executed exactly as written.
 ## Self-Check: PASSED
 
 - FOUND: src/index.ts
-- FOUND: src/tools/__tests__/lazy-loading.integration.test.ts
+- FOUND: `src/tools/__tests__/lazy-loading.integration.test.ts`
 - FOUND commit: e439a01
 - FOUND commit: eafcc41
 - `listChanged: true` present in src/index.ts

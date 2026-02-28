@@ -609,5 +609,7 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
  * @deprecated Use buildRegistry() instead.
  */
 export function getToolDefinitions(): ToolDefinition[] {
-  return buildRegistry().getEnabledDefinitions();
+  // Deprecated API historically returned all available tools.
+  // Use non-lazy mode to preserve that behavior for legacy callers.
+  return buildRegistry(false).getEnabledDefinitions();
 }

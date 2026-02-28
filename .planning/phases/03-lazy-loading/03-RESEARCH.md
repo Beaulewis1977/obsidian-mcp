@@ -16,6 +16,7 @@
 | LAZY-03 | When `lazy_loading: true` (default), only `discover_tools` and `enable_tool` are enabled at session start | buildRegistry() flow: register all tools → conditionally call enableAll() OR only enable alwaysLoaded tools based on config.lazy_loading |
 | LAZY-04 | When `lazy_loading: false`, all tools enabled at session start (backward-compat) | buildRegistry() already calls enableAll(); keep that path; gate it behind config check |
 | LAZY-05 | `enable_tool` response includes full tool schema so clients without list_changed support can use immediately | ToolRegistry.getRegistration(name).definition already contains the full tool definition including inputSchema and outputSchema |
+
 </phase_requirements>
 
 ---
@@ -63,7 +64,7 @@ The MCP SDK `@modelcontextprotocol/sdk` v1.27.1 (installed) exposes `server.send
 
 ### Recommended Project Structure
 
-```
+```text
 src/
 ├── tools/
 │   ├── registry.ts          # ToolRegistry class (unchanged from Phase 2)

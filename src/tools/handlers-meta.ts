@@ -2,7 +2,7 @@
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import type { z } from 'zod';
 import type { ToolRegistry } from './registry.js';
-import type { DiscoverToolsSchema, EnableToolSchema } from './schemas.js';
+import { DiscoverToolsSchema, EnableToolSchema } from './schemas.js';
 import type { ServerConfig, ToolResponse } from '../types/index.js';
 import { createErrorResponse } from '../utils/errors.js';
 
