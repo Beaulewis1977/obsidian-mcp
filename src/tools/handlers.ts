@@ -7,6 +7,7 @@ import { validatePath, ensureMarkdownExtension } from '../utils/validators.js';
 import { createErrorResponse } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { stringifyMarkdown } from '../filesystem/markdown-parser.js';
+import { paginate } from './pagination.js';
 import type {
   ServerConfig,
   VaultConfig,
@@ -500,10 +501,12 @@ export async function handleListNotes(
       }
     }
     
+    const { page: pagedNotes, nextCursor } = paginate(notes, input.cursor);
     const payload: Record<string, unknown> = {
-      notes,
+      notes: pagedNotes,
       total: notes.length,
-      vault: vault.name
+      vault: vault.name,
+      ...(nextCursor !== undefined ? { nextCursor } : {}),
     };
 
     return {
@@ -566,12 +569,14 @@ export async function handleSearchNotes(
       results = await searchNotes(vault.path, input.query);
     }
 
+    const { page: pagedResults, nextCursor } = paginate(results, input.cursor);
     const payload: Record<string, unknown> = {
-      results,
+      results: pagedResults,
       total: results.length,
       query: input.query,
       method,
-      vault: vault.name
+      vault: vault.name,
+      ...(nextCursor !== undefined ? { nextCursor } : {}),
     };
     if (apiMetadata) {
       payload.api_metadata = apiMetadata;
