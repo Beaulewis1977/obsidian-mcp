@@ -326,6 +326,409 @@ Get or create daily note for specified date.
 
 ---
 
+## Graph Tools
+
+### `get_link_graph`
+
+Get a directed graph of all notes in the vault showing links between them, with graph statistics.
+
+**Input:**
+```typescript
+{
+  vault?: string;   // Vault name (optional)
+  folder?: string;  // Limit graph to a specific folder (optional)
+}
+```
+
+**Output:**
+```typescript
+{
+  vault: string;
+  stats: {
+    note_count: number;
+    edge_count: number;
+    density: number;
+  };
+  nodes: Array<{ path: string; name: string; folder: string; tags: string[]; incoming: string[]; outgoing: string[] }>;
+  edges: Array<{ source: string; target: string }>;
+}
+```
+
+**Example:**
+```json
+{
+  "vault": "Personal",
+  "stats": { "note_count": 3, "edge_count": 2, "density": 0.33 },
+  "nodes": [
+    { "path": "A.md", "name": "A", "folder": "", "tags": [], "incoming": [], "outgoing": ["B.md"] }
+  ],
+  "edges": [{ "source": "A.md", "target": "B.md" }]
+}
+```
+
+---
+
+### `find_orphans`
+
+Find notes with no incoming and/or no outgoing links (orphaned notes).
+
+**Input:**
+```typescript
+{
+  vault?: string;
+  type?: "full" | "no_outgoing" | "no_incoming";  // Default: "full"
+}
+```
+
+**Output:**
+```typescript
+{
+  vault: string;
+  type: string;
+  orphans: Array<{ path: string; name: string; folder: string; tags: string[] }>;
+  total: number;
+  total_notes: number;
+}
+```
+
+---
+
+### `search_tags`
+
+Search for tags used across the vault with per-tag usage counts. Supports cursor pagination.
+
+**Input:**
+```typescript
+{
+  vault?: string;
+  query?: string;   // Filter tags by prefix or substring (optional)
+  cursor?: string;  // Pagination cursor from previous response (omit for first page)
+}
+```
+
+**Output:**
+```typescript
+{
+  vault: string;
+  tags: Array<{ tag: string; count: number; notes: string[] }>;
+  total: number;       // Full count of matching tags (not page count)
+  query?: string;
+  nextCursor?: string; // Pass to next call; absent on last page
+}
+```
+
+> **Pagination:** Page size is 50. See `list_notes` pagination note for usage.
+
+---
+
+### `get_outgoing_links`
+
+Get all outgoing wikilinks and embeds from a specific note.
+
+**Input:**
+```typescript
+{
+  path: string;             // Path to the note
+  vault?: string;
+  include_embeds?: boolean; // Include ![[embed]] links (default: true)
+  resolve?: boolean;        // Check if each link target exists in vault (default: false)
+}
+```
+
+**Output:**
+```typescript
+{
+  source: string;
+  links: Array<{ type: "wikilink" | "embed"; target: string; alias: string | null; exists?: boolean }>;
+  total: number;
+  broken_count: number;
+}
+```
+
+---
+
+## Meta Tools (Lazy Loading)
+
+> By default the server starts with only `discover_tools` and `enable_tool` enabled (lazy loading). Use `discover_tools` to browse available tools, then `enable_tool` to activate the ones you need.
+
+### `discover_tools`
+
+List all available tools with name, category, description, and enabled status.
+
+**Input:**
+```typescript
+{
+  query?: string;    // Filter by keyword in name or description (optional)
+  category?: string; // Filter by category name, e.g. "Graph" (optional)
+}
+```
+
+**Output:**
+```typescript
+{
+  tools: Array<{ name: string; category: string; description: string; enabled: boolean }>;
+  categories: string[];
+  total: number;
+  enabled_count: number;
+  total_enabled: number;
+}
+```
+
+---
+
+### `enable_tool`
+
+Enable a tool for the current session. Returns the full tool schema for immediate use.
+
+**Input:**
+```typescript
+{
+  tool_name: string;  // Name of the tool to enable
+}
+```
+
+**Output:**
+```typescript
+{
+  enabled: string[];      // Tool names now enabled (may include tool_name)
+  already_enabled: boolean;
+  schema: object;         // Full JSON Schema for the tool — usable without awaiting notifications/tools/list_changed
+}
+```
+
+---
+
+## Vault Management
+
+### `add_vault`
+
+Create and register a new Obsidian vault (creates folder on disk, registers in obsidian.json and MCP config).
+
+**Input:**
+```typescript
+{
+  name: string;            // Unique display name
+  path: string;            // Absolute path on disk
+  create_folder?: boolean; // Create folder if it doesn't exist (default: true)
+  default?: boolean;       // Set as default vault (default: false)
+  obsidian_api?: {
+    enabled: boolean;
+    url: string;           // e.g. "http://localhost:27123"
+    api_key?: string;
+  };
+}
+```
+
+**Output:**
+```typescript
+{
+  success: boolean;
+  vault_name: string;
+  path: string;
+  folder_created: boolean;
+  obsidian_registered: boolean;
+  mcp_registered: boolean;
+  note?: string;
+}
+```
+
+---
+
+### `remove_vault`
+
+Unregister a vault from Obsidian and MCP config. Cannot remove the last vault or the default vault.
+
+**Input:**
+```typescript
+{
+  name: string;            // Vault display name
+  delete_folder?: boolean; // Delete folder from disk (default: false)
+  confirm: true;           // Must be explicitly true — cannot be omitted
+}
+```
+
+**Output:**
+```typescript
+{
+  success: boolean;
+  vault_name: string;
+  path: string;
+  folder_deleted: boolean;
+  obsidian_unregistered: boolean;
+  mcp_unregistered: boolean;
+}
+```
+
+---
+
+### `list_vaults`
+
+List all configured vaults with disk status, Obsidian registration status, and note counts.
+
+**Input:**
+```typescript
+{}  // No parameters
+```
+
+**Output:**
+```typescript
+{
+  vaults: Array<{
+    name: string;
+    path: string;
+    default: boolean;
+    exists_on_disk: boolean;
+    registered_in_obsidian: boolean;
+    note_count: number;
+    obsidian_api_enabled: boolean;
+  }>;
+  total: number;
+}
+```
+
+---
+
+## Extended Tools
+
+### `manage_tags`
+
+Add or remove tags from one or more notes in a single operation. Handles partial success — notes that cannot be found are reported in results without aborting the operation.
+
+**Input:**
+```typescript
+{
+  vault?: string;
+  paths: string[];   // One or more note paths (relative to vault root)
+  add?: string[];    // Tags to add
+  remove?: string[]; // Tags to remove
+}
+```
+
+At least one of `add` or `remove` must be provided.
+
+**Output:**
+```typescript
+{
+  modified: Array<{
+    path: string;
+    tags_before: string[];
+    tags_after: string[];
+    tags_added: string[];
+    tags_removed: string[];
+    changed: boolean;
+    error?: string;  // Present if this note could not be processed
+  }>;
+  total_modified: number;
+}
+```
+
+---
+
+### `archive_note`
+
+Move a note to a configurable archive folder, optionally stamping an `archived_date` field in the frontmatter. Fails if the archive target path already exists.
+
+**Input:**
+```typescript
+{
+  vault?: string;
+  path: string;                        // Note to archive
+  archive_folder?: string;             // Default: "_archive"
+  add_date?: boolean;                  // Stamp archived_date in frontmatter (default: true)
+}
+```
+
+**Output:**
+```typescript
+{
+  success: boolean;
+  original_path: string;
+  archive_path: string;
+  archived_date?: string;  // ISO date (YYYY-MM-DD), present when add_date=true
+}
+```
+
+---
+
+### `extract_links`
+
+Extract all link types from a note: wikilinks, embeds, markdown links, and bare external URLs. Returns each occurrence with its line number (where available).
+
+**Input:**
+```typescript
+{
+  vault?: string;
+  path: string;
+  types?: Array<"wikilink" | "embed" | "markdown" | "external">;  // Filter (omit for all)
+}
+```
+
+**Output:**
+```typescript
+{
+  path: string;
+  wikilinks: Array<{ type: "wikilink"; target: string; alias: string | null }>;
+  embeds: Array<{ type: "embed"; target: string }>;
+  markdown_links: Array<{ text: string; url: string; line: number }>;
+  external_urls: Array<{ url: string; text: null; line: number }>;
+  total: number;
+}
+```
+
+---
+
+### `get_weekly_note`
+
+Get or create the weekly note for a given ISO week. Mirrors `get_daily_note` for weekly periodic notes.
+
+**Input:**
+```typescript
+{
+  vault?: string;
+  week?: string;                // YYYY-Www format, e.g. "2026-W09" (default: current week)
+  week_folder?: string;         // Default: "weekly"
+  date_format?: string;         // dayjs format for filename (default: "YYYY-[W]WW")
+  create_if_missing?: boolean;  // Create the note if it does not exist (default: true)
+}
+```
+
+**Output:**
+```typescript
+{
+  path: string;
+  created: boolean;
+  week: string;
+  frontmatter: Record<string, any>;
+  content: string;
+}
+```
+
+---
+
+### `list_templates`
+
+List available template notes in the vault's configured templates folder. Returns an empty list (not an error) if the folder does not exist.
+
+**Input:**
+```typescript
+{
+  vault?: string;
+  template_folder?: string;  // Default: "templates"
+}
+```
+
+**Output:**
+```typescript
+{
+  templates: Array<{ path: string; name: string }>;
+  total: number;
+  template_folder: string;
+  note?: string;  // Info message when folder was not found
+}
+```
+
+---
+
 ## Obsidian Local REST API Integration
 
 ### API Endpoints Used
