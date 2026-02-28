@@ -25,7 +25,13 @@ import {
   AddVaultSchema,
   RemoveVaultSchema,
   ListVaultsSchema,
+  ManageTagsSchema,
+  ArchiveNoteSchema,
+  ExtractLinksSchema,
+  GetWeeklyNoteSchema,
+  ListTemplatesSchema,
 } from './schemas.js';
+import { withExamples } from './schema-utils.js';
 import { handleDiscoverTools, handleEnableTool } from './handlers-meta.js';
 import {
   handleReadNote,
@@ -55,6 +61,13 @@ import {
   handleRemoveVault,
   handleListVaults,
 } from './handlers-vault.js';
+import {
+  handleManageTags,
+  handleArchiveNote,
+  handleExtractLinks,
+  handleGetWeeklyNote,
+  handleListTemplates,
+} from './handlers-extended.js';
 import type { ServerConfig } from '../types/index.js';
 import { ToolRegistry } from './registry.js';
 
@@ -110,7 +123,10 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'read_note',
       description: 'Read the complete contents of a note including frontmatter, content, links, and metadata',
-      inputSchema: zodToJsonSchema(ReadNoteSchema),
+      inputSchema: withExamples(zodToJsonSchema(ReadNoteSchema), {
+        path: ['daily/2026-02-28.md', 'Projects/My Project.md'],
+        vault: ['Personal', 'Work'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -136,7 +152,11 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'create_note',
       description: 'Create a new note in the vault with frontmatter and content',
-      inputSchema: zodToJsonSchema(CreateNoteSchema),
+      inputSchema: withExamples(zodToJsonSchema(CreateNoteSchema), {
+        path: ['Projects/New Note.md'],
+        content: ['# My Note\n\nContent here'],
+        vault: ['Personal'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -163,7 +183,12 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'edit_note',
       description: 'Edit an existing note with support for different modes (append, prepend, replace, heading-based insertion)',
-      inputSchema: zodToJsonSchema(EditNoteSchema),
+      inputSchema: withExamples(zodToJsonSchema(EditNoteSchema), {
+        path: ['Projects/Note.md'],
+        content: ['Additional content'],
+        mode: ['append'],
+        vault: ['Personal'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -190,7 +215,11 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'delete_note',
       description: 'Delete a note from the vault (requires confirmation)',
-      inputSchema: zodToJsonSchema(DeleteNoteSchema),
+      inputSchema: withExamples(zodToJsonSchema(DeleteNoteSchema), {
+        path: ['Archive/Old Note.md'],
+        vault: ['Personal'],
+        confirm: [true],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -216,13 +245,18 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'list_notes',
       description: 'List all notes in vault or folder with optional filtering by tag, date, or pattern',
-      inputSchema: zodToJsonSchema(ListNotesSchema),
+      inputSchema: withExamples(zodToJsonSchema(ListNotesSchema), {
+        folder: ['daily', 'Projects'],
+        vault: ['Personal'],
+        cursor: ['eyJvZmZzZXQiOjUwfQ=='],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
           notes: { type: 'array', items: { type: 'object' } },
           total: { type: 'number' },
           vault: { type: 'string' },
+          nextCursor: { type: 'string', description: 'Pass to next call for the following page; absent on last page' },
           error: { type: 'string' }
         },
         required: ['notes', 'total']
@@ -239,7 +273,11 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'search_notes',
       description: 'Search vault content using full-text search',
-      inputSchema: zodToJsonSchema(SearchNotesSchema),
+      inputSchema: withExamples(zodToJsonSchema(SearchNotesSchema), {
+        query: ['meeting notes', 'TODO'],
+        vault: ['Personal'],
+        cursor: ['eyJvZmZzZXQiOjUwfQ=='],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -251,6 +289,7 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
           api_metadata: { type: 'object' },
           api_used: { type: 'boolean' },
           fallback_reason: { type: 'string' },
+          nextCursor: { type: 'string', description: 'Pass to next call for the following page; absent on last page' },
           error: { type: 'string' }
         },
         required: ['results', 'total', 'query']
@@ -267,7 +306,11 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'move_note',
       description: 'Move or rename a note. ⚠️ WARNING: This does NOT automatically update wikilinks.',
-      inputSchema: zodToJsonSchema(MoveNoteSchema),
+      inputSchema: withExamples(zodToJsonSchema(MoveNoteSchema), {
+        source_path: ['drafts/note.md'],
+        target_path: ['published/note.md'],
+        vault: ['Personal'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -292,7 +335,11 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'update_frontmatter',
       description: 'Update specific frontmatter fields without modifying content',
-      inputSchema: zodToJsonSchema(UpdateFrontmatterSchema),
+      inputSchema: withExamples(zodToJsonSchema(UpdateFrontmatterSchema), {
+        path: ['Projects/Note.md'],
+        updates: [{ status: 'done' }],
+        vault: ['Personal'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -316,7 +363,10 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'get_daily_note',
       description: 'Get or create daily note for specified date',
-      inputSchema: zodToJsonSchema(GetDailyNoteSchema),
+      inputSchema: withExamples(zodToJsonSchema(GetDailyNoteSchema), {
+        date: ['2026-02-28', '2026-01-01'],
+        vault: ['Personal'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -342,7 +392,10 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'open_in_obsidian',
       description: 'Open a note or vault in Obsidian application',
-      inputSchema: zodToJsonSchema(OpenInObsidianSchema),
+      inputSchema: withExamples(zodToJsonSchema(OpenInObsidianSchema), {
+        path: ['Projects/Note.md'],
+        vault: ['Personal'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -368,7 +421,10 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'get_backlinks',
       description: 'Find all notes that link to a specific note',
-      inputSchema: zodToJsonSchema(GetBacklinksSchema),
+      inputSchema: withExamples(zodToJsonSchema(GetBacklinksSchema), {
+        path: ['Projects/Note.md'],
+        vault: ['Personal'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -401,7 +457,10 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'create_folder',
       description: 'Create a folder in the vault',
-      inputSchema: zodToJsonSchema(CreateFolderSchema),
+      inputSchema: withExamples(zodToJsonSchema(CreateFolderSchema), {
+        path: ['Projects/2026'],
+        vault: ['Personal'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -423,7 +482,9 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'get_vault_stats',
       description: 'Get statistics about the vault (note count, tags, links, etc.)',
-      inputSchema: zodToJsonSchema(GetVaultStatsSchema),
+      inputSchema: withExamples(zodToJsonSchema(GetVaultStatsSchema), {
+        vault: ['Personal'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -451,7 +512,10 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'get_link_graph',
       description: 'Get a directed graph of all notes in the vault showing links between them, with graph statistics',
-      inputSchema: zodToJsonSchema(GetLinkGraphSchema),
+      inputSchema: withExamples(zodToJsonSchema(GetLinkGraphSchema), {
+        vault: ['Personal'],
+        folder: ['Projects'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -475,7 +539,10 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'find_orphans',
       description: 'Find notes with no incoming and/or no outgoing links (orphaned notes)',
-      inputSchema: zodToJsonSchema(FindOrphansSchema),
+      inputSchema: withExamples(zodToJsonSchema(FindOrphansSchema), {
+        vault: ['Personal'],
+        type: ['full', 'no_incoming'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -500,7 +567,11 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'search_tags',
       description: 'Search for tags used across the vault with usage counts per tag',
-      inputSchema: zodToJsonSchema(SearchTagsSchema),
+      inputSchema: withExamples(zodToJsonSchema(SearchTagsSchema), {
+        vault: ['Personal'],
+        query: ['project', 'status'],
+        cursor: ['eyJvZmZzZXQiOjUwfQ=='],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -518,6 +589,7 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
           },
           total: { type: 'number' },
           query: { type: 'string' },
+          nextCursor: { type: 'string', description: 'Pass to next call for the following page; absent on last page' },
           error: { type: 'string' },
         },
         required: ['vault', 'tags', 'total'],
@@ -534,7 +606,10 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'get_outgoing_links',
       description: 'Get all outgoing wikilinks and embeds from a specific note',
-      inputSchema: zodToJsonSchema(GetOutgoingLinksSchema),
+      inputSchema: withExamples(zodToJsonSchema(GetOutgoingLinksSchema), {
+        path: ['Projects/Note.md'],
+        vault: ['Personal'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -560,7 +635,10 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'add_vault',
       description: 'Create and register a new Obsidian vault (folder + obsidian.json + config.json)',
-      inputSchema: zodToJsonSchema(AddVaultSchema),
+      inputSchema: withExamples(zodToJsonSchema(AddVaultSchema), {
+        name: ['Work Notes'],
+        path: ['/home/user/work-vault'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -587,7 +665,10 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'remove_vault',
       description: 'Unregister a vault from Obsidian and MCP config, optionally delete folder',
-      inputSchema: zodToJsonSchema(RemoveVaultSchema),
+      inputSchema: withExamples(zodToJsonSchema(RemoveVaultSchema), {
+        name: ['Old Vault'],
+        confirm: [true],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -613,7 +694,7 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'list_vaults',
       description: 'List all configured vaults with disk status and note counts',
-      inputSchema: zodToJsonSchema(ListVaultsSchema),
+      inputSchema: withExamples(zodToJsonSchema(ListVaultsSchema), {}),
       outputSchema: {
         type: 'object',
         properties: {
@@ -631,13 +712,159 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     alwaysLoaded: false,
   });
 
+  // ── Extended tools (Phase 4: XTND-01..05) ─────────────────────────────────
+
+  registry.register({
+    definition: {
+      name: 'manage_tags',
+      description: 'Add or remove tags from one or more notes in a single operation. Handles partial success — notes that cannot be found are reported in results without aborting the operation.',
+      inputSchema: withExamples(zodToJsonSchema(ManageTagsSchema), {
+        paths: ['Projects/Note.md', 'daily/2026-02-28.md'],
+        add: ['reviewed', 'feature'],
+        remove: ['draft'],
+        vault: ['Personal'],
+      }),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          modified: { type: 'array', items: { type: 'object' } },
+          total_modified: { type: 'number' },
+          error: { type: 'string' },
+        },
+        required: ['modified', 'total_modified'],
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleManageTags(config, args),
+    schema: ManageTagsSchema,
+    category: 'Metadata',
+    alwaysLoaded: false,
+  });
+
+  registry.register({
+    definition: {
+      name: 'archive_note',
+      description: 'Move a note to a configurable archive folder, optionally stamping an archived_date field in the frontmatter.',
+      inputSchema: withExamples(zodToJsonSchema(ArchiveNoteSchema), {
+        path: ['Projects/Completed Task.md', 'drafts/old-draft.md'],
+        archive_folder: ['_archive', '_archive/2026'],
+        vault: ['Personal'],
+      }),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean' },
+          original_path: { type: 'string' },
+          archive_path: { type: 'string' },
+          archived_date: { type: 'string' },
+          error: { type: 'string' },
+        },
+        required: ['success', 'original_path', 'archive_path'],
+      },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+    },
+    handler: (config, args) => handleArchiveNote(config, args),
+    schema: ArchiveNoteSchema,
+    category: 'Notes',
+    alwaysLoaded: false,
+  });
+
+  registry.register({
+    definition: {
+      name: 'extract_links',
+      description: 'Extract all link types from a note: wikilinks, embeds (![[...]]), markdown links ([text](url)), and bare external URLs. Returns each with its line number.',
+      inputSchema: withExamples(zodToJsonSchema(ExtractLinksSchema), {
+        path: ['Projects/Note.md', 'daily/2026-02-28.md'],
+        types: [['wikilink', 'external']],
+        vault: ['Personal'],
+      }),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          path: { type: 'string' },
+          wikilinks: { type: 'array', items: { type: 'object' } },
+          embeds: { type: 'array', items: { type: 'object' } },
+          markdown_links: { type: 'array', items: { type: 'object' } },
+          external_urls: { type: 'array', items: { type: 'object' } },
+          total: { type: 'number' },
+          error: { type: 'string' },
+        },
+        required: ['path', 'wikilinks', 'embeds', 'markdown_links', 'external_urls', 'total'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleExtractLinks(config, args),
+    schema: ExtractLinksSchema,
+    category: 'Graph',
+    alwaysLoaded: false,
+  });
+
+  registry.register({
+    definition: {
+      name: 'get_weekly_note',
+      description: 'Get or create the weekly note for a given ISO week (YYYY-Www format). Mirrors get_daily_note for weekly periodic notes.',
+      inputSchema: withExamples(zodToJsonSchema(GetWeeklyNoteSchema), {
+        week: ['2026-W09', '2026-W52'],
+        week_folder: ['weekly', 'periodic/weekly'],
+        vault: ['Personal'],
+      }),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          path: { type: 'string' },
+          created: { type: 'boolean' },
+          week: { type: 'string' },
+          frontmatter: { type: 'object' },
+          content: { type: 'string' },
+          error: { type: 'string' },
+        },
+        required: ['path', 'created', 'week'],
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    handler: (config, args) => handleGetWeeklyNote(config, args),
+    schema: GetWeeklyNoteSchema,
+    category: 'Notes',
+    alwaysLoaded: false,
+  });
+
+  registry.register({
+    definition: {
+      name: 'list_templates',
+      description: 'List available template notes in the vault\'s configured templates folder. Returns an empty list (not an error) if the folder does not exist.',
+      inputSchema: withExamples(zodToJsonSchema(ListTemplatesSchema), {
+        template_folder: ['templates', 'Templates', '_templates'],
+        vault: ['Personal'],
+      }),
+      outputSchema: {
+        type: 'object',
+        properties: {
+          templates: { type: 'array', items: { type: 'object' } },
+          total: { type: 'number' },
+          template_folder: { type: 'string' },
+          note: { type: 'string' },
+          error: { type: 'string' },
+        },
+        required: ['templates', 'total'],
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    handler: (config, args) => handleListTemplates(config, args),
+    schema: ListTemplatesSchema,
+    category: 'Notes',
+    alwaysLoaded: false,
+  });
+
   // --- Meta-tools (Phase 3 lazy loading) --- always enabled regardless of lazy_loading
 
   registry.register({
     definition: {
       name: 'discover_tools',
       description: 'List all available tools with name, category, description, and enabled status. Use this to find tools before enabling them.',
-      inputSchema: zodToJsonSchema(DiscoverToolsSchema),
+      inputSchema: withExamples(zodToJsonSchema(DiscoverToolsSchema), {
+        query: ['note', 'tag'],
+        category: ['Core CRUD', 'Graph'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
@@ -662,7 +889,9 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
     definition: {
       name: 'enable_tool',
       description: 'Enable a tool for the current session. Returns the full tool schema so you can use it immediately. Call discover_tools first to see available tools.',
-      inputSchema: zodToJsonSchema(EnableToolSchema),
+      inputSchema: withExamples(zodToJsonSchema(EnableToolSchema), {
+        tool_name: ['read_note', 'search_notes'],
+      }),
       outputSchema: {
         type: 'object',
         properties: {
