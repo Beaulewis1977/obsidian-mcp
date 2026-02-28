@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Quality Foundation** - Fix critical bugs, upgrade SDK, modernize to MCP 2025-11-25 spec, add missing test coverage
 - [x] **Phase 2: Registry + Link Tools** - Replace static switch dispatch with ToolRegistry architecture, add 4 high-value link/graph tools (completed 2026-02-27)
 - [x] **Phase 3: Lazy Loading** - Add discover_tools + enable_tool meta-tools, wire config-gated lazy loading for 80%+ token reduction (completed 2026-02-28)
-- [ ] **Phase 4: Extended Tools + Polish** - Add 5 extended tools, per-property input examples, pagination, and final docs
+- [x] **Phase 4: Extended Tools + Polish** - Add 5 extended tools, per-property input examples, pagination, and final docs (completed 2026-02-28)
 
 ## Phase Details
 
@@ -116,4 +116,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Registry + Link Tools | 3/3 | Complete   | 2026-02-27 |
 | 3. Lazy Loading | 2/2 | Complete   | 2026-02-28 |
 | 3.1. Vault Management Tools | 2/2 | Complete | 2026-02-27 |
-| 4. Extended Tools + Polish | 4/5 | In Progress|  |
+| 4. Extended Tools + Polish | 5/5 | Complete   | 2026-02-28 |

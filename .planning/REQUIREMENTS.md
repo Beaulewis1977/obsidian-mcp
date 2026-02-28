@@ -75,7 +75,7 @@ Requirements for Milestone 2. Each maps to a roadmap phase. Ordered by wave (dep
 - [x] **PLSH-02**: `list_notes` supports cursor-based pagination (`nextCursor` opaque token)
 - [x] **PLSH-03**: `search_notes` supports cursor-based pagination
 - [x] **PLSH-04**: `search_tags` supports cursor-based pagination
-- [ ] **PLSH-05**: `API_REFERENCE.md` documents all tools including the new Milestone 2 additions
+- [x] **PLSH-05**: `API_REFERENCE.md` documents all tools including the new Milestone 2 additions
 
 ## v2 Requirements
 
@@ -155,7 +155,7 @@ Roadmap created 2026-02-26. All 34 v1 requirements mapped across 4 phases.
 | PLSH-02 | Phase 4 | Complete |
 | PLSH-03 | Phase 4 | Complete |
 | PLSH-04 | Phase 4 | Complete |
-| PLSH-05 | Phase 4 | Pending |
+| PLSH-05 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 40 total (34 original + 6 VAULT)
