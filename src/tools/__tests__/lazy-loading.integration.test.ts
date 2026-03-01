@@ -96,7 +96,7 @@ describe('discover_tools handler', () => {
     expect(result.isError).toBeUndefined();
 
     const payload = JSON.parse(result.content[0].text as string);
-    // total is always unfiltered (all 22)
+    // total is always unfiltered (all 27)
     expect(payload.total).toBe(27);
     // Each tool in results must match 'note' in name or description
     payload.tools.forEach((tool: any) => {
@@ -169,7 +169,7 @@ describe('discover_tools handler', () => {
     expect(payload.enabled_count).toBe(0);
     // total_enabled is from ALL tools (2 meta-tools are enabled globally)
     expect(payload.total_enabled).toBe(2);
-    // total is still all 22 tools (unfiltered)
+    // total is still all 27 tools (unfiltered)
     expect(payload.total).toBe(27);
   });
 });

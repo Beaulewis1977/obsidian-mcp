@@ -789,7 +789,7 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
           total: { type: 'number' },
           error: { type: 'string' },
         },
-        required: ['path', 'wikilinks', 'embeds', 'markdown_links', 'external_urls', 'total'],
+        required: ['path', 'total'],
       },
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },

@@ -337,21 +337,22 @@ export async function handleExtractLinks(
       const lineNum = i + 1;
       const line = lines[i];
 
-      // Markdown links
+      // Track markdown link URLs for this line to avoid recomputing from all prior lines
+      const mdUrlsForLine = new Set<string>();
       let mdMatch: RegExpExecArray | null;
       MARKDOWN_LINK_RE.lastIndex = 0;
       while ((mdMatch = MARKDOWN_LINK_RE.exec(line)) !== null) {
-        markdownLinks.push({ text: mdMatch[1], url: mdMatch[2], line: lineNum });
+        const url = mdMatch[2];
+        markdownLinks.push({ text: mdMatch[1], url, line: lineNum });
+        mdUrlsForLine.add(url);
       }
 
       // Bare external URLs (not already captured as part of a markdown link)
       BARE_URL_RE.lastIndex = 0;
-      // Build a set of URLs already captured as markdown links on this line
-      const mdUrls = new Set(markdownLinks.filter(ml => ml.line === lineNum).map(ml => ml.url));
       let urlMatch: RegExpExecArray | null;
       while ((urlMatch = BARE_URL_RE.exec(line)) !== null) {
         const url = urlMatch[1];
-        if (!mdUrls.has(url)) {
+        if (!mdUrlsForLine.has(url)) {
           externalUrls.push({ url, line: lineNum });
         }
       }
@@ -420,8 +421,31 @@ export async function handleGetWeeklyNote(
       );
     }
 
-    // Filename = weekStr + '.md' (e.g., "2026-W09.md")
-    const filename = `${weekStr}.md`;
+    // Derive filename from week and optional date_format.
+    // weekStr is always in canonical ISO-like form "YYYY-Www" (e.g., "2026-W09").
+    // If args.date_format is provided, it is used as a dayjs-style template where:
+    //   - "[...]" brackets produce the enclosed text literally (e.g., "[W]" → "W")
+    //   - "YYYY"  is replaced with the 4-digit year (e.g., "2026")
+    //   - "WW"    is replaced with the 2-digit week number (e.g., "09")
+    // Otherwise, the filename uses the raw weekStr as before.
+    const [yearPart, weekPartWithPrefix] = weekStr.split('-W');
+    const weekPart = weekPartWithPrefix ?? '';
+    let formattedWeekStr: string;
+    if (args.date_format && typeof args.date_format === 'string' && args.date_format.length > 0) {
+      // Collect bracketed literals, replace tokens, then restore literals
+      const literals: string[] = [];
+      let fmt = args.date_format.replace(/\[([^\]]*)\]/g, (_m, inner) => {
+        literals.push(inner);
+        return `\x00${literals.length - 1}\x00`;
+      });
+      fmt = fmt.replace(/YYYY/g, yearPart).replace(/WW/g, weekPart);
+      formattedWeekStr = fmt.replace(/\x00(\d+)\x00/g, (_m, idx) => literals[Number(idx)]);
+    } else {
+      formattedWeekStr = weekStr;
+    }
+
+    // Filename = formattedWeekStr + '.md' (default: "YYYY-Www.md", e.g., "2026-W09.md")
+    const filename = `${formattedWeekStr}.md`;
     const notePath = path.join(args.week_folder, filename).replace(/\\/g, '/');
 
     // Validate path

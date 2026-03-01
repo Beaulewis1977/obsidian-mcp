@@ -667,10 +667,10 @@ Extract all link types from a note: wikilinks, embeds, markdown links, and bare 
 ```typescript
 {
   path: string;
-  wikilinks: Array<{ type: "wikilink"; target: string; alias: string | null }>;
-  embeds: Array<{ type: "embed"; target: string }>;
+  wikilinks: Array<{ target: string; alias: string | null; section: string | null }>;
+  embeds: Array<{ target: string; alias: string | null; section: string | null }>;
   markdown_links: Array<{ text: string; url: string; line: number }>;
-  external_urls: Array<{ url: string; text: null; line: number }>;
+  external_urls: Array<{ url: string; line: number }>;
   total: number;
 }
 ```
@@ -687,7 +687,7 @@ Get or create the weekly note for a given ISO week. Mirrors `get_daily_note` for
   vault?: string;
   week?: string;                // YYYY-Www format, e.g. "2026-W09" (default: current week)
   week_folder?: string;         // Default: "weekly"
-  date_format?: string;         // dayjs format for filename (default: "YYYY-[W]WW")
+  date_format?: string;         // Filename template: "YYYY" → year, "ww" → 2-digit week (default: "YYYY-Www")
   create_if_missing?: boolean;  // Create the note if it does not exist (default: true)
 }
 ```

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Milestone 2 takes a working 13-tool server and makes it the best Obsidian MCP implementation available: spec-compliant, cross-platform, efficiently lazy-loaded, and expanded to 24 tools. The four phases follow a hard dependency chain — bugs and SDK upgrade first, registry architecture second, lazy loading third, polish and extended tools last. Nothing in a later wave can safely be built without the earlier wave being complete and tested.
+Milestone 2 takes a working 13-tool server and makes it the best Obsidian MCP implementation available: spec-compliant, cross-platform, efficiently lazy-loaded, and expanded to 27 tools. The four phases follow a hard dependency chain — bugs and SDK upgrade first, registry architecture second, lazy loading third, polish and extended tools last. Nothing in a later wave can safely be built without the earlier wave being complete and tested.
 
 ## Phases
 
