@@ -11,7 +11,7 @@ import type { ServerConfig, ToolResponse } from '../types/index.js';
 import { createErrorResponse } from '../utils/errors.js';
 import { readNote, listNotes, noteExists } from '../filesystem/vault-reader.js';
 import { writeNote, moveNote } from '../filesystem/vault-writer.js';
-import { ensureMarkdownExtension } from '../utils/validators.js';
+import { validatePath, ensureMarkdownExtension } from '../utils/validators.js';
 import { parseWikilinks } from './link-graph.js';
 import { getDefaultVault, getVaultByName } from '../config/index.js';
 
@@ -84,6 +84,13 @@ export async function handleManageTags(
     // Sequential loop (not Promise.all) — safe for large vaults
     for (const notePath of args.paths) {
       const normalizedPath = ensureMarkdownExtension(notePath);
+
+      // Validate path — partial failure, not abort
+      const validation = validatePath(normalizedPath, vault.path);
+      if (!validation.valid) {
+        results.push({ path: normalizedPath, error: validation.error! });
+        continue;
+      }
 
       // Check existence — partial failure, not abort
       const exists = await noteExists(vault.path, normalizedPath);
@@ -182,6 +189,17 @@ export async function handleArchiveNote(
     const vault = getVault(config, args.vault);
     const notePath = ensureMarkdownExtension(args.path);
 
+    // Validate source path
+    const srcValidation = validatePath(notePath, vault.path);
+    if (!srcValidation.valid) {
+      return createErrorResponse(
+        'Invalid path',
+        srcValidation.error!,
+        'INVALID_PATH',
+        'Use relative paths within the vault only.'
+      );
+    }
+
     // Check source exists
     const sourceExists = await noteExists(vault.path, notePath);
     if (!sourceExists) {
@@ -195,6 +213,17 @@ export async function handleArchiveNote(
 
     // Compute archive path: archive_folder/basename.md
     const archivePath = path.join(args.archive_folder, path.basename(notePath)).replace(/\\/g, '/');
+
+    // Validate archive path
+    const archiveValidation = validatePath(archivePath, vault.path);
+    if (!archiveValidation.valid) {
+      return createErrorResponse(
+        'Invalid path',
+        archiveValidation.error!,
+        'INVALID_PATH',
+        'The archive_folder must be a relative path within the vault.'
+      );
+    }
 
     // Check for collision
     const archiveExists = await noteExists(vault.path, archivePath);
@@ -262,6 +291,17 @@ export async function handleExtractLinks(
   try {
     const vault = getVault(config, args.vault);
     const notePath = ensureMarkdownExtension(args.path);
+
+    // Validate path
+    const validation = validatePath(notePath, vault.path);
+    if (!validation.valid) {
+      return createErrorResponse(
+        'Invalid path',
+        validation.error!,
+        'INVALID_PATH',
+        'Use relative paths within the vault only.'
+      );
+    }
 
     const exists = await noteExists(vault.path, notePath);
     if (!exists) {
@@ -384,6 +424,17 @@ export async function handleGetWeeklyNote(
     const filename = `${weekStr}.md`;
     const notePath = path.join(args.week_folder, filename).replace(/\\/g, '/');
 
+    // Validate path
+    const validation = validatePath(notePath, vault.path);
+    if (!validation.valid) {
+      return createErrorResponse(
+        'Invalid path',
+        validation.error!,
+        'INVALID_PATH',
+        'The week_folder must be a relative path within the vault.'
+      );
+    }
+
     const exists = await noteExists(vault.path, notePath);
 
     if (exists) {
@@ -456,6 +507,17 @@ export async function handleListTemplates(
 ): Promise<ToolResponse> {
   try {
     const vault = getVault(config, args.vault);
+
+    // Validate template folder path
+    const validation = validatePath(args.template_folder, vault.path);
+    if (!validation.valid) {
+      return createErrorResponse(
+        'Invalid path',
+        validation.error!,
+        'INVALID_PATH',
+        'The template_folder must be a relative path within the vault.'
+      );
+    }
 
     let templates: unknown[] = [];
     let note: string | undefined;

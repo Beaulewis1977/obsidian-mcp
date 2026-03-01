@@ -44,7 +44,7 @@ const mockParseWikilinks = vi.mocked(parseWikilinks);
 function makeMockConfig() {
   return {
     version: '1.0',
-    vaults: [{ name: 'test', path: '/vault', default: true }],
+    vaults: [{ name: 'test', path: process.cwd(), default: true }],
     rate_limiting: { enabled: false },
   } as any;
 }
@@ -154,7 +154,7 @@ describe('handleArchiveNote', () => {
     expect(payload.original_path).toBe('note.md');
     expect(payload.archive_path).toContain('_archive');
     expect(payload.archived_date).toBeDefined();
-    expect(mockMoveNote).toHaveBeenCalledWith('/vault', 'note.md', expect.stringContaining('_archive'));
+    expect(mockMoveNote).toHaveBeenCalledWith(process.cwd(), 'note.md', expect.stringContaining('_archive'));
     expect(mockWriteNote).toHaveBeenCalled();
   });
 
@@ -264,7 +264,7 @@ describe('handleGetWeeklyNote', () => {
     expect(payload.week).toBe('2026-W09');
     expect(payload.path).toBe('weekly/2026-W09.md');
     expect(mockWriteNote).toHaveBeenCalledWith(
-      '/vault',
+      process.cwd(),
       'weekly/2026-W09.md',
       expect.objectContaining({ frontmatter: { week: '2026-W09' } })
     );
@@ -364,5 +364,115 @@ describe('handleListTemplates', () => {
     expect(payload.total).toBe(0);
     expect(payload.templates).toHaveLength(0);
     expect(payload.note).toContain("templates");
+  });
+});
+
+// ── Path traversal protection ────────────────────────────────────────────────
+
+describe('path traversal protection', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function expectTraversalBlocked(result: any) {
+    expect(result.isError).toBe(true);
+    const text = result.content[0].text as string;
+    expect(text).toContain('INVALID_PATH');
+    // No filesystem operations should have been attempted
+    expect(mockNoteExists).not.toHaveBeenCalled();
+    expect(mockReadNote).not.toHaveBeenCalled();
+    expect(mockWriteNote).not.toHaveBeenCalled();
+    expect(mockMoveNote).not.toHaveBeenCalled();
+    expect(mockListNotes).not.toHaveBeenCalled();
+  }
+
+  it('manage_tags rejects paths with ../ traversal', async () => {
+    const config = makeMockConfig();
+    const result = await handleManageTags(config, {
+      paths: ['../../etc/passwd'],
+      add: ['pwned'],
+    });
+
+    // manage_tags uses partial failure — per-note error, not top-level isError
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.modified[0].error).toContain('path');
+    expect(payload.total_modified).toBe(0);
+    expect(mockNoteExists).not.toHaveBeenCalled();
+    expect(mockReadNote).not.toHaveBeenCalled();
+    expect(mockWriteNote).not.toHaveBeenCalled();
+  });
+
+  it('manage_tags rejects absolute paths', async () => {
+    const config = makeMockConfig();
+    const result = await handleManageTags(config, {
+      paths: ['/etc/passwd'],
+      add: ['pwned'],
+    });
+
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.modified[0].error).toBeDefined();
+    expect(payload.total_modified).toBe(0);
+    expect(mockReadNote).not.toHaveBeenCalled();
+    expect(mockWriteNote).not.toHaveBeenCalled();
+  });
+
+  it('archive_note rejects source path with ../ traversal', async () => {
+    const config = makeMockConfig();
+    const result = await handleArchiveNote(config, {
+      path: '../../secret/note',
+      archive_folder: '_archive',
+      add_date: false,
+    });
+
+    expectTraversalBlocked(result);
+  });
+
+  it('archive_note rejects archive_folder with ../ traversal', async () => {
+    const config = makeMockConfig();
+    // Source path is valid, but archive_folder escapes vault
+    mockNoteExists.mockImplementation((_v: string, p: string) =>
+      Promise.resolve(p === 'note.md')
+    );
+
+    const result = await handleArchiveNote(config, {
+      path: 'note.md',
+      archive_folder: '../../outside',
+      add_date: false,
+    });
+
+    expect(result.isError).toBe(true);
+    const text = result.content[0].text as string;
+    expect(text).toContain('INVALID_PATH');
+    expect(mockMoveNote).not.toHaveBeenCalled();
+  });
+
+  it('extract_links rejects path with ../ traversal', async () => {
+    const config = makeMockConfig();
+    const result = await handleExtractLinks(config, {
+      path: '../../../etc/passwd',
+    });
+
+    expectTraversalBlocked(result);
+  });
+
+  it('get_weekly_note rejects week_folder with ../ traversal', async () => {
+    const config = makeMockConfig();
+    const result = await handleGetWeeklyNote(config, {
+      week: '2026-W09',
+      week_folder: '../../outside',
+      date_format: 'YYYY-[W]WW',
+      create_if_missing: true,
+    });
+
+    expectTraversalBlocked(result);
+  });
+
+  it('list_templates rejects template_folder with ../ traversal', async () => {
+    const config = makeMockConfig();
+    const result = await handleListTemplates(config, {
+      template_folder: '../../secrets',
+    });
+
+    expectTraversalBlocked(result);
   });
 });
