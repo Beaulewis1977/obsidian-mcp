@@ -411,8 +411,8 @@ export async function handleGetWeeklyNote(
     // Determine week string (default = current ISO week)
     const weekStr = args.week ?? currentISOWeek();
 
-    // Validate format YYYY-Www
-    if (!/^\d{4}-W\d{2}$/.test(weekStr)) {
+    // Validate format YYYY-Www with week range 01-53
+    if (!/^\d{4}-W(0[1-9]|[1-4][0-9]|5[0-3])$/.test(weekStr)) {
       return createErrorResponse(
         'Invalid week format',
         `Week "${weekStr}" does not match required format YYYY-Www (e.g., "2026-W09").`,
@@ -434,12 +434,15 @@ export async function handleGetWeeklyNote(
     if (args.date_format && typeof args.date_format === 'string' && args.date_format.length > 0) {
       // Collect bracketed literals, replace tokens, then restore literals
       const literals: string[] = [];
+      const literalTokenPrefix = '__OBS_MCP_LITERAL_';
+      const literalTokenSuffix = '__';
+      const literalTokenRe = new RegExp(`${literalTokenPrefix}(\\d+)${literalTokenSuffix}`, 'g');
       let fmt = args.date_format.replace(/\[([^\]]*)\]/g, (_m, inner) => {
         literals.push(inner);
-        return `\x00${literals.length - 1}\x00`;
+        return `${literalTokenPrefix}${literals.length - 1}${literalTokenSuffix}`;
       });
       fmt = fmt.replace(/YYYY/g, yearPart).replace(/WW/g, weekPart);
-      formattedWeekStr = fmt.replace(/\x00(\d+)\x00/g, (_m, idx) => literals[Number(idx)]);
+      formattedWeekStr = fmt.replace(literalTokenRe, (_m, idx) => literals[Number(idx)] ?? '');
     } else {
       formattedWeekStr = weekStr;
     }

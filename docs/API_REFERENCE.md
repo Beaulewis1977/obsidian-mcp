@@ -687,7 +687,7 @@ Get or create the weekly note for a given ISO week. Mirrors `get_daily_note` for
   vault?: string;
   week?: string;                // YYYY-Www format, e.g. "2026-W09" (default: current week)
   week_folder?: string;         // Default: "weekly"
-  date_format?: string;         // Filename template: "YYYY" → year, "ww" → 2-digit week (default: "YYYY-Www")
+  date_format?: string;         // Filename template: "[...]" literal, "YYYY" → year, "WW" → 2-digit week (default: "YYYY-[W]WW")
   create_if_missing?: boolean;  // Create the note if it does not exist (default: true)
 }
 ```
