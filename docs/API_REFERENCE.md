@@ -653,7 +653,7 @@ Move a note to a configurable archive folder, optionally stamping an `archived_d
 
 ### `extract_links`
 
-Extract all link types from a note: wikilinks, embeds, markdown links, and bare external URLs. Returns each occurrence with its line number (where available).
+Extract all link types from a note: wikilinks, embeds, Markdown links, and bare external URLs. Returns each occurrence with its line number (where available).
 
 **Input:**
 ```typescript

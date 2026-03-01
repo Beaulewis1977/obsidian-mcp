@@ -113,6 +113,31 @@ describe('handleManageTags', () => {
     expect(missingResult.changed).toBeUndefined();
   });
 
+  it('continues processing remaining notes when one note write fails', async () => {
+    const config = makeMockConfig();
+
+    mockNoteExists.mockResolvedValue(true);
+    mockReadNote.mockResolvedValue(makeNote({ frontmatter: { tags: [] } }));
+    mockWriteNote
+      .mockRejectedValueOnce(new Error('write failed for first'))
+      .mockResolvedValueOnce(undefined);
+
+    const result = await handleManageTags(config, {
+      paths: ['first.md', 'second.md'],
+      add: ['tag1'],
+    });
+
+    expect(result.isError).toBeUndefined();
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.modified).toHaveLength(2);
+
+    const firstResult = payload.modified.find((r: any) => r.path === 'first.md');
+    const secondResult = payload.modified.find((r: any) => r.path === 'second.md');
+    expect(firstResult.error).toContain('write failed for first');
+    expect(secondResult.changed).toBe(true);
+    expect(payload.total_modified).toBe(1);
+  });
+
   it('returns isError=true when neither add nor remove is provided', async () => {
     const config = makeMockConfig();
 
@@ -253,6 +278,24 @@ describe('handleExtractLinks', () => {
     expect(payload.markdown_links[0].url).toBe('https://obsidian.md');
     expect(payload.external_urls.length).toBeGreaterThanOrEqual(1);
     expect(payload.total).toBeGreaterThan(0);
+  });
+
+  it('keeps bare URL when same URL also appears in markdown link on the same line', async () => {
+    const config = makeMockConfig();
+    const content = 'Check [docs](https://example.com) and mirror https://example.com';
+
+    mockNoteExists.mockResolvedValue(true);
+    mockReadNote.mockResolvedValue(makeNote({ content }));
+    mockParseWikilinks.mockReturnValue([]);
+
+    const result = await handleExtractLinks(config, { path: 'note.md' });
+
+    expect(result.isError).toBeUndefined();
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.markdown_links).toHaveLength(1);
+    expect(payload.markdown_links[0].url).toBe('https://example.com');
+    expect(payload.external_urls).toHaveLength(1);
+    expect(payload.external_urls[0].url).toBe('https://example.com');
   });
 
   it('returns isError=true when note does not exist', async () => {
@@ -456,10 +499,6 @@ describe('path traversal protection', () => {
 
   it('archive_note rejects archive_folder with ../ traversal', async () => {
     const config = makeMockConfig();
-    // Source path is valid, but archive_folder escapes vault
-    mockNoteExists.mockImplementation((_v: string, p: string) =>
-      Promise.resolve(p === 'note.md')
-    );
 
     const result = await handleArchiveNote(config, {
       path: 'note.md',
@@ -470,6 +509,7 @@ describe('path traversal protection', () => {
     expect(result.isError).toBe(true);
     const text = result.content[0].text as string;
     expect(text).toContain('INVALID_PATH');
+    expect(mockNoteExists).not.toHaveBeenCalled();
     expect(mockMoveNote).not.toHaveBeenCalled();
   });
 

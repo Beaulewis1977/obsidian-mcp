@@ -84,74 +84,80 @@ export async function handleManageTags(
     // Sequential loop (not Promise.all) — safe for large vaults
     for (const notePath of args.paths) {
       const normalizedPath = ensureMarkdownExtension(notePath);
-
-      // Validate path — partial failure, not abort
-      const validation = validatePath(normalizedPath, vault.path);
-      if (!validation.valid) {
-        results.push({ path: normalizedPath, error: validation.error! });
-        continue;
-      }
-
-      // Check existence — partial failure, not abort
-      const exists = await noteExists(vault.path, normalizedPath);
-      if (!exists) {
-        results.push({ path: normalizedPath, error: 'Note not found' });
-        continue;
-      }
-
-      const note = await readNote(vault.path, normalizedPath);
-
-      // Normalize current tags: handle both string and array forms
-      let currentTags: string[] = [];
-      const rawTags = note.frontmatter?.tags;
-      if (Array.isArray(rawTags)) {
-        currentTags = rawTags.filter((t): t is string => typeof t === 'string');
-      } else if (typeof rawTags === 'string' && rawTags.trim()) {
-        currentTags = [rawTags.trim()];
-      }
-
-      const tagsBefore = [...currentTags];
-
-      // Apply remove
-      const removeSet = new Set(args.remove ?? []);
-      let updatedTags = currentTags.filter(t => !removeSet.has(t));
-
-      // Apply add (Set-dedup union)
-      const addTags = args.add ?? [];
-      const tagSet = new Set(updatedTags);
-      const tagsAdded: string[] = [];
-      for (const tag of addTags) {
-        if (!tagSet.has(tag)) {
-          tagSet.add(tag);
-          tagsAdded.push(tag);
+      try {
+        // Validate path — partial failure, not abort
+        const validation = validatePath(normalizedPath, vault.path);
+        if (!validation.valid) {
+          results.push({ path: normalizedPath, error: validation.error! });
+          continue;
         }
+
+        // Check existence — partial failure, not abort
+        const exists = await noteExists(vault.path, normalizedPath);
+        if (!exists) {
+          results.push({ path: normalizedPath, error: 'Note not found' });
+          continue;
+        }
+
+        const note = await readNote(vault.path, normalizedPath);
+
+        // Normalize current tags: handle both string and array forms
+        let currentTags: string[] = [];
+        const rawTags = note.frontmatter?.tags;
+        if (Array.isArray(rawTags)) {
+          currentTags = rawTags.filter((t): t is string => typeof t === 'string');
+        } else if (typeof rawTags === 'string' && rawTags.trim()) {
+          currentTags = [rawTags.trim()];
+        }
+
+        const tagsBefore = [...currentTags];
+
+        // Apply remove
+        const removeSet = new Set(args.remove ?? []);
+        let updatedTags = currentTags.filter(t => !removeSet.has(t));
+
+        // Apply add (Set-dedup union)
+        const addTags = args.add ?? [];
+        const tagSet = new Set(updatedTags);
+        const tagsAdded: string[] = [];
+        for (const tag of addTags) {
+          if (!tagSet.has(tag)) {
+            tagSet.add(tag);
+            tagsAdded.push(tag);
+          }
+        }
+        updatedTags = Array.from(tagSet);
+
+        const tagsRemoved = tagsBefore.filter(t => !updatedTags.includes(t));
+        const changed =
+          tagsAdded.length > 0 ||
+          tagsRemoved.length > 0;
+
+        if (changed) {
+          const updatedNote = {
+            ...note,
+            frontmatter: {
+              ...note.frontmatter,
+              tags: updatedTags,
+            },
+          };
+          await writeNote(vault.path, normalizedPath, updatedNote);
+        }
+
+        results.push({
+          path: normalizedPath,
+          tags_before: tagsBefore,
+          tags_after: updatedTags,
+          tags_added: tagsAdded,
+          tags_removed: tagsRemoved,
+          changed,
+        });
+      } catch (error: any) {
+        results.push({
+          path: normalizedPath,
+          error: error?.message ?? String(error),
+        });
       }
-      updatedTags = Array.from(tagSet);
-
-      const tagsRemoved = tagsBefore.filter(t => !updatedTags.includes(t));
-      const changed =
-        tagsAdded.length > 0 ||
-        tagsRemoved.length > 0;
-
-      if (changed) {
-        const updatedNote = {
-          ...note,
-          frontmatter: {
-            ...note.frontmatter,
-            tags: updatedTags,
-          },
-        };
-        await writeNote(vault.path, normalizedPath, updatedNote);
-      }
-
-      results.push({
-        path: normalizedPath,
-        tags_before: tagsBefore,
-        tags_after: updatedTags,
-        tags_added: tagsAdded,
-        tags_removed: tagsRemoved,
-        changed,
-      });
     }
 
     const payload = {
@@ -200,17 +206,6 @@ export async function handleArchiveNote(
       );
     }
 
-    // Check source exists
-    const sourceExists = await noteExists(vault.path, notePath);
-    if (!sourceExists) {
-      return createErrorResponse(
-        'Note not found',
-        `Source note does not exist: ${notePath}`,
-        'NOTE_NOT_FOUND',
-        'Verify the note path is correct relative to the vault root.'
-      );
-    }
-
     // Compute archive path: archive_folder/basename.md
     const archivePath = path.join(args.archive_folder, path.basename(notePath)).replace(/\\/g, '/');
 
@@ -222,6 +217,17 @@ export async function handleArchiveNote(
         archiveValidation.error!,
         'INVALID_PATH',
         'The archive_folder must be a relative path within the vault.'
+      );
+    }
+
+    // Check source exists
+    const sourceExists = await noteExists(vault.path, notePath);
+    if (!sourceExists) {
+      return createErrorResponse(
+        'Note not found',
+        `Source note does not exist: ${notePath}`,
+        'NOTE_NOT_FOUND',
+        'Verify the note path is correct relative to the vault root.'
       );
     }
 
@@ -344,22 +350,27 @@ export async function handleExtractLinks(
       const lineNum = i + 1;
       const line = lines[i];
 
-      // Track markdown link URLs for this line to avoid recomputing from all prior lines
-      const mdUrlsForLine = new Set<string>();
+      // Track markdown match spans so we only skip bare URLs inside markdown syntax
+      const mdSpans: Array<{ start: number; end: number }> = [];
       let mdMatch: RegExpExecArray | null;
       MARKDOWN_LINK_RE.lastIndex = 0;
       while ((mdMatch = MARKDOWN_LINK_RE.exec(line)) !== null) {
         const url = mdMatch[2];
         markdownLinks.push({ text: mdMatch[1], url, line: lineNum });
-        mdUrlsForLine.add(url);
+        const mdStart = mdMatch.index;
+        const mdEnd = mdStart + mdMatch[0].length;
+        mdSpans.push({ start: mdStart, end: mdEnd });
       }
 
-      // Bare external URLs (not already captured as part of a markdown link)
+      // Bare external URLs (not part of markdown link syntax)
       BARE_URL_RE.lastIndex = 0;
       let urlMatch: RegExpExecArray | null;
       while ((urlMatch = BARE_URL_RE.exec(line)) !== null) {
         const url = urlMatch[1];
-        if (!mdUrlsForLine.has(url)) {
+        const urlStart = urlMatch.index;
+        const urlEnd = urlStart + url.length;
+        const insideMarkdownSpan = mdSpans.some(span => urlStart >= span.start && urlEnd <= span.end);
+        if (!insideMarkdownSpan) {
           externalUrls.push({ url, line: lineNum });
         }
       }
