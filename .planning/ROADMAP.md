@@ -99,11 +99,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Foundation utilities: withExamples() post-processor, pagination.ts, 5 new Zod schemas + cursor fields on 3 existing schemas
-- [ ] 04-02-PLAN.md — 5 new tool handlers in handlers-extended.ts + integration tests
-- [ ] 04-03-PLAN.md — Cursor pagination for list_notes, search_notes, search_tags + integration tests
-- [ ] 04-04-PLAN.md — Registry wiring: register 5 new tools, apply withExamples to all 27 tools, update tool count test
-- [ ] 04-05-PLAN.md — API_REFERENCE.md: document all 27 tools including pagination and new tool sections
+- [x] 04-01-PLAN.md — Foundation utilities: withExamples() post-processor, pagination.ts, 5 new Zod schemas + cursor fields on 3 existing schemas
+- [x] 04-02-PLAN.md — 5 new tool handlers in handlers-extended.ts + integration tests
+- [x] 04-03-PLAN.md — Cursor pagination for list_notes, search_notes, search_tags + integration tests
+- [x] 04-04-PLAN.md — Registry wiring: register 5 new tools, apply withExamples to all 27 tools, update tool count test
+- [x] 04-05-PLAN.md — API_REFERENCE.md: document all 27 tools including pagination and new tool sections
 
 ## Progress
 
