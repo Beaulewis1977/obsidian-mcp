@@ -757,6 +757,7 @@ export function buildRegistry(lazyLoading: boolean = true, server?: Server): Too
           original_path: { type: 'string' },
           archive_path: { type: 'string' },
           archived_date: { type: 'string' },
+          warning: { type: 'string' },
           error: { type: 'string' },
         },
         required: ['success', 'original_path', 'archive_path'],

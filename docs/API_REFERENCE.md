@@ -645,6 +645,7 @@ Move a note to a configurable archive folder, optionally stamping an `archived_d
   original_path: string;
   archive_path: string;
   archived_date?: string;  // ISO date (YYYY-MM-DD), present when add_date=true
+  warning?: string;        // Non-fatal warning when move succeeds but archived_date update fails
 }
 ```
 

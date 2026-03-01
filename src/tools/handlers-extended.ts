@@ -241,18 +241,24 @@ export async function handleArchiveNote(
 
     // Optionally add archived_date to frontmatter
     let archivedDate: string | undefined;
+    let warning: string | undefined;
     if (args.add_date) {
       const today = new Date();
       archivedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      const movedNote = await readNote(vault.path, archivePath);
-      const updatedNote = {
-        ...movedNote,
-        frontmatter: {
-          ...movedNote.frontmatter,
-          archived_date: archivedDate,
-        },
-      };
-      await writeNote(vault.path, archivePath, updatedNote);
+      try {
+        const movedNote = await readNote(vault.path, archivePath);
+        const updatedNote = {
+          ...movedNote,
+          frontmatter: {
+            ...movedNote.frontmatter,
+            archived_date: archivedDate,
+          },
+        };
+        await writeNote(vault.path, archivePath, updatedNote);
+      } catch (error: any) {
+        archivedDate = undefined;
+        warning = `Note moved to "${archivePath}", but failed to set archived_date: ${error?.message ?? String(error)}`;
+      }
     }
 
     const payload = {
@@ -260,6 +266,7 @@ export async function handleArchiveNote(
       original_path: notePath,
       archive_path: archivePath,
       ...(archivedDate !== undefined ? { archived_date: archivedDate } : {}),
+      ...(warning !== undefined ? { warning } : {}),
     };
 
     return {

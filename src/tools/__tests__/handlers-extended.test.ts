@@ -191,6 +191,33 @@ describe('handleArchiveNote', () => {
     expect(text).toContain('already exists');
     expect(mockMoveNote).not.toHaveBeenCalled();
   });
+
+  it('returns success with warning when archived_date update fails after move', async () => {
+    const config = makeMockConfig();
+
+    // Source exists, archive path does not
+    mockNoteExists.mockImplementation((_vaultPath: string, p: string) =>
+      Promise.resolve(!p.includes('_archive'))
+    );
+    mockReadNote.mockResolvedValue(makeNote({ path: '_archive/note.md', frontmatter: {} }));
+    mockWriteNote.mockRejectedValueOnce(new Error('disk write failed'));
+
+    const result = await handleArchiveNote(config, {
+      path: 'note.md',
+      archive_folder: '_archive',
+      add_date: true,
+    });
+
+    expect(result.isError).toBeUndefined();
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.success).toBe(true);
+    expect(payload.original_path).toBe('note.md');
+    expect(payload.archive_path).toContain('_archive');
+    expect(payload.archived_date).toBeUndefined();
+    expect(payload.warning).toContain('failed to set archived_date');
+    expect(payload.warning).toContain('disk write failed');
+    expect(mockMoveNote).toHaveBeenCalledWith(process.cwd(), 'note.md', expect.stringContaining('_archive'));
+  });
 });
 
 // ── handleExtractLinks ────────────────────────────────────────────────────────
