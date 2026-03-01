@@ -4,6 +4,7 @@ import { createErrorResponse } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { getDefaultVault, getVaultByName } from '../config/index.js';
 import { parseWikilinks, extractInlineTags, buildVaultGraph } from './link-graph.js';
+import { paginate } from './pagination.js';
 import type { ServerConfig, VaultConfig, ToolResponse } from '../types/index.js';
 import type { GetLinkGraphInput, FindOrphansInput, SearchTagsInput, GetOutgoingLinksInput } from './schemas.js';
 
@@ -257,10 +258,14 @@ export async function handleSearchTags(
     // Sort by count descending
     entries.sort((a, b) => b[1].count - a[1].count);
 
+    const tagResults = entries.map(([tag, info]) => ({ tag, count: info.count, notes: info.notes }));
+    const { page: pagedTags, nextCursor } = paginate(tagResults, input.cursor);
+
     const payload: Record<string, unknown> = {
       vault: vault.name,
-      tags: entries.map(([tag, info]) => ({ tag, count: info.count, notes: info.notes })),
-      total: entries.length,
+      tags: pagedTags,
+      total: tagResults.length,
+      ...(nextCursor !== undefined ? { nextCursor } : {}),
     };
 
     if (input.query) {

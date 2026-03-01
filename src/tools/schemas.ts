@@ -63,14 +63,16 @@ export const ListNotesSchema = z.object({
     modified_since: z.string().optional().describe('ISO date (e.g., "2024-01-01")'),
     pattern: z.string().optional().describe('Filename pattern (glob)')
   }).optional().describe('Optional filters'),
-  include_metadata: coerceBool.default(false).describe('Include file metadata')
+  include_metadata: coerceBool.default(false).describe('Include file metadata'),
+  cursor: z.string().optional().describe('Pagination cursor from previous response (omit for first page)'),
 });
 
 export const SearchNotesSchema = z.object({
   query: z.string().min(1).describe('Search query'),
   vault: z.string().optional().describe('Vault name (optional)'),
   mode: z.enum(['obsidian', 'filesystem']).default('filesystem')
-    .describe('Search mode: obsidian (API) or filesystem')
+    .describe('Search mode: obsidian (API) or filesystem'),
+  cursor: z.string().optional().describe('Pagination cursor from previous response (omit for first page)'),
 });
 
 export const MoveNoteSchema = z.object({
@@ -128,6 +130,7 @@ export const FindOrphansSchema = z.object({
 export const SearchTagsSchema = z.object({
   vault: z.string().optional().describe('Vault name (optional)'),
   query: z.string().optional().describe('Filter tags by prefix or substring (optional)'),
+  cursor: z.string().optional().describe('Pagination cursor from previous response (omit for first page)'),
 });
 
 export const GetOutgoingLinksSchema = z.object({
@@ -173,6 +176,52 @@ export const EnableToolSchema = z.object({
     .describe('Name of the tool to enable in the current session'),
 });
 
+// ─── Extended tool schemas (Phase 4: XTND-01..05) ────────────────────────────
+
+export const ManageTagsSchema = z.object({
+  vault: z.string().optional().describe('Vault name (optional)'),
+  paths: z.array(z.string().min(1)).min(1)
+    .describe('Paths to notes to modify (relative to vault root, e.g., ["folder/note.md"])'),
+  add: z.array(z.string()).optional()
+    .describe('Tags to add to each note (added after deduplication)'),
+  remove: z.array(z.string()).optional()
+    .describe('Tags to remove from each note'),
+});
+
+export const ArchiveNoteSchema = z.object({
+  vault: z.string().optional().describe('Vault name (optional)'),
+  path: z.string().min(1).describe('Path to the note to archive (relative to vault root)'),
+  archive_folder: z.string().default('_archive')
+    .describe('Archive destination folder relative to vault root (default: "_archive")'),
+  add_date: coerceBool.default(true)
+    .describe('Add archived_date field to frontmatter (default: true)'),
+});
+
+export const ExtractLinksSchema = z.object({
+  vault: z.string().optional().describe('Vault name (optional)'),
+  path: z.string().min(1).describe('Path to the note (relative to vault root)'),
+  types: z.array(z.enum(['wikilink', 'embed', 'markdown', 'external'])).optional()
+    .describe('Filter by link type (omit to return all types)'),
+});
+
+export const GetWeeklyNoteSchema = z.object({
+  vault: z.string().optional().describe('Vault name (optional)'),
+  week: z.string().optional()
+    .describe('ISO week string in YYYY-Www format (e.g., "2026-W09"; default: current week)'),
+  week_folder: z.string().default('weekly')
+    .describe('Folder for weekly notes relative to vault root (default: "weekly")'),
+  date_format: z.string().default('YYYY-[W]WW')
+    .describe('dayjs format string for the weekly note filename (default: "YYYY-[W]WW")'),
+  create_if_missing: coerceBool.default(true)
+    .describe('Create the weekly note if it does not exist (default: true)'),
+});
+
+export const ListTemplatesSchema = z.object({
+  vault: z.string().optional().describe('Vault name (optional)'),
+  template_folder: z.string().default('templates')
+    .describe('Templates folder path relative to vault root (default: "templates")'),
+});
+
 // Type exports
 export type ReadNoteInput = z.infer<typeof ReadNoteSchema>;
 export type CreateNoteInput = z.infer<typeof CreateNoteSchema>;
@@ -196,3 +245,8 @@ export type EnableToolInput = z.infer<typeof EnableToolSchema>;
 export type AddVaultInput = z.infer<typeof AddVaultSchema>;
 export type RemoveVaultInput = z.infer<typeof RemoveVaultSchema>;
 export type ListVaultsInput = z.infer<typeof ListVaultsSchema>;
+export type ManageTagsInput = z.infer<typeof ManageTagsSchema>;
+export type ArchiveNoteInput = z.infer<typeof ArchiveNoteSchema>;
+export type ExtractLinksInput = z.infer<typeof ExtractLinksSchema>;
+export type GetWeeklyNoteInput = z.infer<typeof GetWeeklyNoteSchema>;
+export type ListTemplatesInput = z.infer<typeof ListTemplatesSchema>;

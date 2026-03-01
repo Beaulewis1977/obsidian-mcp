@@ -1,0 +1,668 @@
+import path from 'path';
+import type { z } from 'zod';
+import {
+  ManageTagsSchema,
+  ArchiveNoteSchema,
+  ExtractLinksSchema,
+  GetWeeklyNoteSchema,
+  ListTemplatesSchema,
+} from './schemas.js';
+import type { ServerConfig, ToolResponse } from '../types/index.js';
+import { createErrorResponse } from '../utils/errors.js';
+import { readNote, listNotes, noteExists } from '../filesystem/vault-reader.js';
+import { writeNote, moveNote } from '../filesystem/vault-writer.js';
+import { validatePath, ensureMarkdownExtension } from '../utils/validators.js';
+import { parseWikilinks } from './link-graph.js';
+import { getDefaultVault, getVaultByName } from '../config/index.js';
+
+// ---------------------------------------------------------------------------
+// Vault resolution helper
+// ---------------------------------------------------------------------------
+
+function getVault(config: ServerConfig, vaultName?: string) {
+  const vault = vaultName ? getVaultByName(config, vaultName) : getDefaultVault(config);
+  if (!vault) {
+    const err = new Error('No vault configured or specified vault not found');
+    err.name = 'VAULT_NOT_FOUND';
+    (err as any).code = 'VAULT_NOT_FOUND';
+    throw err;
+  }
+  return vault;
+}
+
+function isVaultNotFoundError(error: any): boolean {
+  return error?.code === 'VAULT_NOT_FOUND' || error?.name === 'VAULT_NOT_FOUND';
+}
+
+// ---------------------------------------------------------------------------
+// ISO week computation (native — no dayjs isoWeek plugin needed)
+// Returns the current ISO week as "YYYY-Www" (e.g., "2026-W09").
+// Uses Thursday-based ISO 8601 week numbering.
+// ---------------------------------------------------------------------------
+
+function currentISOWeek(): string {
+  const now = new Date();
+  // Find Thursday of the current week (ISO week: Mon=day1, Thu=day4)
+  const thursday = new Date(now);
+  thursday.setDate(now.getDate() - ((now.getDay() + 6) % 7) + 3);
+  // Find first Thursday of the year
+  const firstThursday = new Date(thursday.getFullYear(), 0, 4);
+  firstThursday.setDate(firstThursday.getDate() - ((firstThursday.getDay() + 6) % 7) + 3);
+  // ISO week number = difference in weeks + 1
+  const weekNum =
+    Math.round((thursday.getTime() - firstThursday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+  return `${thursday.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+}
+
+// ---------------------------------------------------------------------------
+// handleManageTags — XTND-01
+// ---------------------------------------------------------------------------
+
+/**
+ * Add/remove tags on multiple notes.
+ * Partial success: notes that cannot be found are recorded in results rather
+ * than aborting the entire operation.
+ */
+export async function handleManageTags(
+  config: ServerConfig,
+  args: z.infer<typeof ManageTagsSchema>
+): Promise<ToolResponse> {
+  try {
+    const vault = getVault(config, args.vault);
+
+    // Validate: at least one of add or remove must be provided
+    if ((!args.add || args.add.length === 0) && (!args.remove || args.remove.length === 0)) {
+      return createErrorResponse(
+        'Missing tag operation',
+        'At least one of "add" or "remove" must be provided with at least one tag.',
+        'VALIDATION_ERROR',
+        'Provide add:["tag1"] and/or remove:["tag2"] to modify tags.'
+      );
+    }
+
+    const results: Array<{
+      path: string;
+      error?: string;
+      tags_before?: string[];
+      tags_after?: string[];
+      tags_added?: string[];
+      tags_removed?: string[];
+      changed?: boolean;
+    }> = [];
+
+    // Sequential loop (not Promise.all) — safe for large vaults
+    for (const notePath of args.paths) {
+      const normalizedPath = ensureMarkdownExtension(notePath);
+      try {
+        // Validate path — partial failure, not abort
+        const validation = validatePath(normalizedPath, vault.path);
+        if (!validation.valid) {
+          results.push({ path: normalizedPath, error: validation.error! });
+          continue;
+        }
+
+        // Check existence — partial failure, not abort
+        const exists = await noteExists(vault.path, normalizedPath);
+        if (!exists) {
+          results.push({ path: normalizedPath, error: 'Note not found' });
+          continue;
+        }
+
+        const note = await readNote(vault.path, normalizedPath);
+
+        // Normalize current tags: handle both string and array forms
+        let currentTags: string[] = [];
+        const rawTags = note.frontmatter?.tags;
+        if (Array.isArray(rawTags)) {
+          currentTags = rawTags.filter((t): t is string => typeof t === 'string');
+        } else if (typeof rawTags === 'string' && rawTags.trim()) {
+          currentTags = [rawTags.trim()];
+        }
+
+        const tagsBefore = [...currentTags];
+
+        // Apply remove
+        const removeSet = new Set(args.remove ?? []);
+        let updatedTags = currentTags.filter(t => !removeSet.has(t));
+
+        // Apply add (Set-dedup union)
+        const addTags = args.add ?? [];
+        const tagSet = new Set(updatedTags);
+        const tagsAdded: string[] = [];
+        for (const tag of addTags) {
+          if (!tagSet.has(tag)) {
+            tagSet.add(tag);
+            tagsAdded.push(tag);
+          }
+        }
+        updatedTags = Array.from(tagSet);
+
+        const tagsRemoved = tagsBefore.filter(t => !updatedTags.includes(t));
+        const changed =
+          tagsAdded.length > 0 ||
+          tagsRemoved.length > 0;
+
+        if (changed) {
+          const updatedNote = {
+            ...note,
+            frontmatter: {
+              ...note.frontmatter,
+              tags: updatedTags,
+            },
+          };
+          await writeNote(vault.path, normalizedPath, updatedNote);
+        }
+
+        results.push({
+          path: normalizedPath,
+          tags_before: tagsBefore,
+          tags_after: updatedTags,
+          tags_added: tagsAdded,
+          tags_removed: tagsRemoved,
+          changed,
+        });
+      } catch (error: any) {
+        results.push({
+          path: normalizedPath,
+          error: error?.message ?? String(error),
+        });
+      }
+    }
+
+    const payload = {
+      modified: results,
+      total_modified: results.filter(r => r.changed).length,
+    };
+
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }],
+      structuredContent: payload as Record<string, unknown>,
+    };
+  } catch (error: any) {
+    if (isVaultNotFoundError(error)) {
+      return createErrorResponse(
+        'Vault not configured',
+        error?.message ?? 'No vault configured or specified vault not found',
+        'VAULT_NOT_FOUND',
+        'Configure a vault in settings or pass a valid vault name.'
+      );
+    }
+    return createErrorResponse(
+      'Failed to manage tags',
+      error?.message ?? String(error),
+      'FILESYSTEM_ERROR',
+      'Check vault configuration and note paths.'
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// handleArchiveNote — XTND-02
+// ---------------------------------------------------------------------------
+
+/**
+ * Move a note to an archive folder, optionally adding an archived_date
+ * frontmatter field.
+ */
+export async function handleArchiveNote(
+  config: ServerConfig,
+  args: z.infer<typeof ArchiveNoteSchema>
+): Promise<ToolResponse> {
+  try {
+    const vault = getVault(config, args.vault);
+    const notePath = ensureMarkdownExtension(args.path);
+
+    // Validate source path
+    const srcValidation = validatePath(notePath, vault.path);
+    if (!srcValidation.valid) {
+      return createErrorResponse(
+        'Invalid path',
+        srcValidation.error!,
+        'INVALID_PATH',
+        'Use relative paths within the vault only.'
+      );
+    }
+
+    // Compute archive path: archive_folder/basename.md
+    const archivePath = path.join(args.archive_folder, path.basename(notePath)).replace(/\\/g, '/');
+
+    // Validate archive path
+    const archiveValidation = validatePath(archivePath, vault.path);
+    if (!archiveValidation.valid) {
+      return createErrorResponse(
+        'Invalid path',
+        archiveValidation.error!,
+        'INVALID_PATH',
+        'The archive_folder must be a relative path within the vault.'
+      );
+    }
+
+    // Check source exists
+    const sourceExists = await noteExists(vault.path, notePath);
+    if (!sourceExists) {
+      return createErrorResponse(
+        'Note not found',
+        `Source note does not exist: ${notePath}`,
+        'NOTE_NOT_FOUND',
+        'Verify the note path is correct relative to the vault root.'
+      );
+    }
+
+    // Check for collision
+    const archiveExists = await noteExists(vault.path, archivePath);
+    if (archiveExists) {
+      return createErrorResponse(
+        'Archive target already exists',
+        `Archive target already exists at ${archivePath}. Rename source or choose a different archive_folder.`,
+        'NOTE_ALREADY_EXISTS',
+        `Delete or rename the existing file at "${archivePath}" first.`
+      );
+    }
+
+    // Move the note (vault-writer.ts moveNote takes vaultPath, sourcePath, targetPath)
+    await moveNote(vault.path, notePath, archivePath);
+
+    // Optionally add archived_date to frontmatter
+    let archivedDate: string | undefined;
+    let warning: string | undefined;
+    if (args.add_date) {
+      const today = new Date();
+      archivedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      try {
+        const movedNote = await readNote(vault.path, archivePath);
+        const updatedNote = {
+          ...movedNote,
+          frontmatter: {
+            ...movedNote.frontmatter,
+            archived_date: archivedDate,
+          },
+        };
+        await writeNote(vault.path, archivePath, updatedNote);
+      } catch (error: any) {
+        archivedDate = undefined;
+        warning = `Note moved to "${archivePath}", but failed to set archived_date: ${error?.message ?? String(error)}`;
+      }
+    }
+
+    const payload = {
+      success: true,
+      original_path: notePath,
+      archive_path: archivePath,
+      ...(archivedDate !== undefined ? { archived_date: archivedDate } : {}),
+      ...(warning !== undefined ? { warning } : {}),
+    };
+
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }],
+      structuredContent: payload as Record<string, unknown>,
+    };
+  } catch (error: any) {
+    if (isVaultNotFoundError(error)) {
+      return createErrorResponse(
+        'Vault not configured',
+        error?.message ?? 'No vault configured or specified vault not found',
+        'VAULT_NOT_FOUND',
+        'Configure a vault in settings or pass a valid vault name.'
+      );
+    }
+    return createErrorResponse(
+      'Failed to archive note',
+      error?.message ?? String(error),
+      'FILESYSTEM_ERROR',
+      'Check vault configuration and note paths.'
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// handleExtractLinks — XTND-03
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract all link types from a note: wikilinks, embeds, markdown links,
+ * and external URLs.
+ */
+export async function handleExtractLinks(
+  config: ServerConfig,
+  args: z.infer<typeof ExtractLinksSchema>
+): Promise<ToolResponse> {
+  try {
+    const vault = getVault(config, args.vault);
+    const notePath = ensureMarkdownExtension(args.path);
+
+    // Validate path
+    const validation = validatePath(notePath, vault.path);
+    if (!validation.valid) {
+      return createErrorResponse(
+        'Invalid path',
+        validation.error!,
+        'INVALID_PATH',
+        'Use relative paths within the vault only.'
+      );
+    }
+
+    const exists = await noteExists(vault.path, notePath);
+    if (!exists) {
+      return createErrorResponse(
+        'Note not found',
+        `Note does not exist: ${notePath}`,
+        'NOTE_NOT_FOUND',
+        'Verify the note path is correct relative to the vault root.'
+      );
+    }
+
+    const note = await readNote(vault.path, notePath);
+    const content = note.content;
+
+    // Extract wikilinks and embeds via parseWikilinks
+    const parsed = parseWikilinks(content);
+    const wikilinks = parsed
+      .filter(w => !w.isEmbed)
+      .map(w => ({ target: w.target, alias: w.alias, section: w.section }));
+    const embeds = parsed
+      .filter(w => w.isEmbed)
+      .map(w => ({ target: w.target, alias: w.alias, section: w.section }));
+
+    // Extract markdown links line-by-line with line numbers
+    // Accept internal parenthesized URL segments (e.g., Wikipedia style URLs).
+    const MARKDOWN_LINK_RE = /\[([^\]]*)\]\((https?:\/\/(?:[^\s()]+|\((?:[^\s()]+|\([^()]*\))*\))+)\)/g;
+    // Avoid matching inside markdown link parentheses; trailing punctuation is handled below.
+    const BARE_URL_RE = /(?<!\()(https?:\/\/[^\s"'<>]*[^\s"'<>.,;:!?])/g;
+
+    const markdownLinks: Array<{ text: string; url: string; line: number }> = [];
+    const externalUrls: Array<{ url: string; line: number }> = [];
+
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const lineNum = i + 1;
+      const line = lines[i];
+
+      // Track markdown match spans so we only skip bare URLs inside markdown syntax
+      const mdSpans: Array<{ start: number; end: number }> = [];
+      let mdMatch: RegExpExecArray | null;
+      MARKDOWN_LINK_RE.lastIndex = 0;
+      while ((mdMatch = MARKDOWN_LINK_RE.exec(line)) !== null) {
+        const url = mdMatch[2];
+        markdownLinks.push({ text: mdMatch[1], url, line: lineNum });
+        const mdStart = mdMatch.index;
+        const mdEnd = mdStart + mdMatch[0].length;
+        mdSpans.push({ start: mdStart, end: mdEnd });
+      }
+
+      // Bare external URLs (not part of markdown link syntax)
+      BARE_URL_RE.lastIndex = 0;
+      let urlMatch: RegExpExecArray | null;
+      while ((urlMatch = BARE_URL_RE.exec(line)) !== null) {
+        let url = urlMatch[1];
+        while (url.length > 0) {
+          const lastChar = url[url.length - 1];
+          if (/[.,;:!?]/.test(lastChar)) {
+            url = url.slice(0, -1);
+            continue;
+          }
+          if (lastChar === ')') {
+            const openCount = (url.match(/\(/g) ?? []).length;
+            const closeCount = (url.match(/\)/g) ?? []).length;
+            if (closeCount > openCount) {
+              url = url.slice(0, -1);
+              continue;
+            }
+          }
+          break;
+        }
+        const urlStart = urlMatch.index;
+        const urlEnd = urlStart + url.length;
+        const insideMarkdownSpan = mdSpans.some(span => urlStart >= span.start && urlEnd <= span.end);
+        if (!insideMarkdownSpan && url) {
+          externalUrls.push({ url, line: lineNum });
+        }
+      }
+    }
+
+    // Apply type filter
+    const typeFilter = args.types;
+    const includeAll = !typeFilter || typeFilter.length === 0;
+    const include = (t: 'wikilink' | 'embed' | 'markdown' | 'external') =>
+      includeAll || typeFilter!.includes(t);
+
+    const result: Record<string, unknown> = {
+      path: notePath,
+    };
+    if (include('wikilink')) result.wikilinks = wikilinks;
+    if (include('embed')) result.embeds = embeds;
+    if (include('markdown')) result.markdown_links = markdownLinks;
+    if (include('external')) result.external_urls = externalUrls;
+
+    const total =
+      (include('wikilink') ? wikilinks.length : 0) +
+      (include('embed') ? embeds.length : 0) +
+      (include('markdown') ? markdownLinks.length : 0) +
+      (include('external') ? externalUrls.length : 0);
+
+    result.total = total;
+
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
+      structuredContent: result,
+    };
+  } catch (error: any) {
+    if (isVaultNotFoundError(error)) {
+      return createErrorResponse(
+        'Vault not configured',
+        error?.message ?? 'No vault configured or specified vault not found',
+        'VAULT_NOT_FOUND',
+        'Configure a vault in settings or pass a valid vault name.'
+      );
+    }
+    return createErrorResponse(
+      'Failed to extract links',
+      error?.message ?? String(error),
+      'FILESYSTEM_ERROR',
+      'Check vault configuration and note path.'
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// handleGetWeeklyNote — XTND-04
+// ---------------------------------------------------------------------------
+
+/**
+ * Get or create the weekly note for a given ISO week string (YYYY-Www).
+ */
+export async function handleGetWeeklyNote(
+  config: ServerConfig,
+  args: z.infer<typeof GetWeeklyNoteSchema>
+): Promise<ToolResponse> {
+  try {
+    const vault = getVault(config, args.vault);
+
+    // Determine week string (default = current ISO week)
+    const weekStr = args.week ?? currentISOWeek();
+
+    // Validate format YYYY-Www with week range 01-53
+    if (!/^\d{4}-W(0[1-9]|[1-4][0-9]|5[0-3])$/.test(weekStr)) {
+      return createErrorResponse(
+        'Invalid week format',
+        `Week "${weekStr}" does not match required format YYYY-Www (e.g., "2026-W09").`,
+        'VALIDATION_ERROR',
+        'Provide a week string in YYYY-Www format, e.g., "2026-W09".'
+      );
+    }
+
+    // Derive filename from week and optional date_format.
+    // weekStr is always in canonical ISO-like form "YYYY-Www" (e.g., "2026-W09").
+    // If args.date_format is provided, it is used as a dayjs-style template where:
+    //   - "[...]" brackets produce the enclosed text literally (e.g., "[W]" → "W")
+    //   - "YYYY"  is replaced with the 4-digit year (e.g., "2026")
+    //   - "WW"    is replaced with the 2-digit week number (e.g., "09")
+    // Otherwise, the filename uses the raw weekStr as before.
+    const [yearPart, weekPartWithPrefix] = weekStr.split('-W');
+    const weekPart = weekPartWithPrefix ?? '';
+    let formattedWeekStr: string;
+    if (args.date_format && typeof args.date_format === 'string' && args.date_format.length > 0) {
+      // Collect bracketed literals, replace tokens, then restore literals
+      const literals: string[] = [];
+      const literalTokenPrefix = '__OBS_MCP_LITERAL_';
+      const literalTokenSuffix = '__';
+      const literalTokenRe = new RegExp(`${literalTokenPrefix}(\\d+)${literalTokenSuffix}`, 'g');
+      let fmt = args.date_format.replace(/\[([^\]]*)\]/g, (_m, inner) => {
+        literals.push(inner);
+        return `${literalTokenPrefix}${literals.length - 1}${literalTokenSuffix}`;
+      });
+      fmt = fmt.replace(/YYYY/g, yearPart).replace(/WW/g, weekPart);
+      formattedWeekStr = fmt.replace(literalTokenRe, (_m, idx) => literals[Number(idx)] ?? '');
+    } else {
+      formattedWeekStr = weekStr;
+    }
+
+    // Filename = formattedWeekStr + '.md' (default: "YYYY-Www.md", e.g., "2026-W09.md")
+    const filename = `${formattedWeekStr}.md`;
+    const notePath = path.join(args.week_folder, filename).replace(/\\/g, '/');
+
+    // Validate path
+    const validation = validatePath(notePath, vault.path);
+    if (!validation.valid) {
+      return createErrorResponse(
+        'Invalid path',
+        validation.error!,
+        'INVALID_PATH',
+        'The week_folder must be a relative path within the vault.'
+      );
+    }
+
+    const exists = await noteExists(vault.path, notePath);
+
+    if (exists) {
+      const note = await readNote(vault.path, notePath);
+      const payload = {
+        path: notePath,
+        created: false,
+        week: weekStr,
+        frontmatter: note.frontmatter,
+        content: note.content,
+      };
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }],
+        structuredContent: payload as Record<string, unknown>,
+      };
+    }
+
+    // Note does not exist
+    if (!args.create_if_missing) {
+      return createErrorResponse(
+        'Weekly note not found',
+        `Weekly note for ${weekStr} does not exist at ${notePath}.`,
+        'NOTE_NOT_FOUND',
+        'Pass create_if_missing:true to create the note automatically.'
+      );
+    }
+
+    // Create the note
+    const newNote = {
+      path: notePath,
+      frontmatter: { week: weekStr },
+      content: '',
+      links: [],
+    };
+    await writeNote(vault.path, notePath, newNote);
+
+    const payload = {
+      path: notePath,
+      created: true,
+      week: weekStr,
+      frontmatter: newNote.frontmatter,
+      content: newNote.content,
+    };
+
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }],
+      structuredContent: payload as Record<string, unknown>,
+    };
+  } catch (error: any) {
+    if (isVaultNotFoundError(error)) {
+      return createErrorResponse(
+        'Vault not configured',
+        error?.message ?? 'No vault configured or specified vault not found',
+        'VAULT_NOT_FOUND',
+        'Configure a vault in settings or pass a valid vault name.'
+      );
+    }
+    return createErrorResponse(
+      'Failed to get weekly note',
+      error?.message ?? String(error),
+      'FILESYSTEM_ERROR',
+      'Check vault configuration and week_folder path.'
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// handleListTemplates — XTND-05
+// ---------------------------------------------------------------------------
+
+/**
+ * List notes in the templates folder.
+ * Returns an empty list (not an error) when the folder does not exist.
+ */
+export async function handleListTemplates(
+  config: ServerConfig,
+  args: z.infer<typeof ListTemplatesSchema>
+): Promise<ToolResponse> {
+  try {
+    const vault = getVault(config, args.vault);
+
+    // Validate template folder path
+    const validation = validatePath(args.template_folder, vault.path);
+    if (!validation.valid) {
+      return createErrorResponse(
+        'Invalid path',
+        validation.error!,
+        'INVALID_PATH',
+        'The template_folder must be a relative path within the vault.'
+      );
+    }
+
+    let templates: unknown[] = [];
+    let note: string | undefined;
+
+    try {
+      templates = await listNotes(vault.path, args.template_folder);
+    } catch (err: any) {
+      if (err?.code === 'ENOENT') {
+        note = `Template folder '${args.template_folder}' not found in vault`;
+      } else {
+        throw err;
+      }
+    }
+
+    const payload: Record<string, unknown> = {
+      templates,
+      total: templates.length,
+      template_folder: args.template_folder,
+    };
+    if (note) {
+      payload.note = note;
+    }
+
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }],
+      structuredContent: payload,
+    };
+  } catch (error: any) {
+    if (isVaultNotFoundError(error)) {
+      return createErrorResponse(
+        'Vault not configured',
+        error?.message ?? 'No vault configured or specified vault not found',
+        'VAULT_NOT_FOUND',
+        'Configure a vault in settings or pass a valid vault name.'
+      );
+    }
+    return createErrorResponse(
+      'Failed to list templates',
+      error?.message ?? String(error),
+      'FILESYSTEM_ERROR',
+      'Check vault configuration and template_folder path.'
+    );
+  }
+}

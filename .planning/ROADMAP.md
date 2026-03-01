@@ -2,7 +2,7 @@
 
 ## Overview
 
-Milestone 2 takes a working 13-tool server and makes it the best Obsidian MCP implementation available: spec-compliant, cross-platform, efficiently lazy-loaded, and expanded to 24 tools. The four phases follow a hard dependency chain — bugs and SDK upgrade first, registry architecture second, lazy loading third, polish and extended tools last. Nothing in a later wave can safely be built without the earlier wave being complete and tested.
+Milestone 2 takes a working 13-tool server and makes it the best Obsidian MCP implementation available: spec-compliant, cross-platform, efficiently lazy-loaded, and expanded to 27 tools. The four phases follow a hard dependency chain — bugs and SDK upgrade first, registry architecture second, lazy loading third, polish and extended tools last. Nothing in a later wave can safely be built without the earlier wave being complete and tested.
 
 ## Phases
 
@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Quality Foundation** - Fix critical bugs, upgrade SDK, modernize to MCP 2025-11-25 spec, add missing test coverage
 - [x] **Phase 2: Registry + Link Tools** - Replace static switch dispatch with ToolRegistry architecture, add 4 high-value link/graph tools (completed 2026-02-27)
 - [x] **Phase 3: Lazy Loading** - Add discover_tools + enable_tool meta-tools, wire config-gated lazy loading for 80%+ token reduction (completed 2026-02-28)
-- [ ] **Phase 4: Extended Tools + Polish** - Add 5 extended tools, per-property input examples, pagination, and final docs
+- [x] **Phase 4: Extended Tools + Polish** - Add 5 extended tools, per-property input examples, pagination, and final docs (completed 2026-02-28)
 
 ## Phase Details
 
@@ -96,12 +96,19 @@ Plans:
   2. Every tool's input schema fields include a populated `examples` array (JSON Schema 2020-12 per-property `examples` keyword); no tool uses the old top-level `input_examples` pattern
   3. `list_notes`, `search_notes`, and `search_tags` accept a `cursor` input and return `nextCursor` in their response when more results exist; omitting `cursor` returns the first page
   4. `API_REFERENCE.md` documents all tools including the Milestone 2 additions with accurate parameter descriptions and example responses
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [x] 04-01-PLAN.md — Foundation utilities: withExamples() post-processor, pagination.ts, 5 new Zod schemas + cursor fields on 3 existing schemas
+- [x] 04-02-PLAN.md — 5 new tool handlers in handlers-extended.ts + integration tests
+- [x] 04-03-PLAN.md — Cursor pagination for list_notes, search_notes, search_tags + integration tests
+- [x] 04-04-PLAN.md — Registry wiring: register 5 new tools, apply withExamples to all 27 tools, update tool count test
+- [x] 04-05-PLAN.md — API_REFERENCE.md: document all 27 tools including pagination and new tool sections
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -109,4 +116,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Registry + Link Tools | 3/3 | Complete   | 2026-02-27 |
 | 3. Lazy Loading | 2/2 | Complete   | 2026-02-28 |
 | 3.1. Vault Management Tools | 2/2 | Complete | 2026-02-27 |
-| 4. Extended Tools + Polish | 0/TBD | Not started | - |
+| 4. Extended Tools + Polish | 5/5 | Complete   | 2026-02-28 |
