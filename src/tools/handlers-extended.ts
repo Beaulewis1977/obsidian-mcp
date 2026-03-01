@@ -21,8 +21,17 @@ import { getDefaultVault, getVaultByName } from '../config/index.js';
 
 function getVault(config: ServerConfig, vaultName?: string) {
   const vault = vaultName ? getVaultByName(config, vaultName) : getDefaultVault(config);
-  if (!vault) throw new Error('No vault configured or specified vault not found');
+  if (!vault) {
+    const err = new Error('No vault configured or specified vault not found');
+    err.name = 'VAULT_NOT_FOUND';
+    (err as any).code = 'VAULT_NOT_FOUND';
+    throw err;
+  }
   return vault;
+}
+
+function isVaultNotFoundError(error: any): boolean {
+  return error?.code === 'VAULT_NOT_FOUND' || error?.name === 'VAULT_NOT_FOUND';
 }
 
 // ---------------------------------------------------------------------------
@@ -170,6 +179,14 @@ export async function handleManageTags(
       structuredContent: payload as Record<string, unknown>,
     };
   } catch (error: any) {
+    if (isVaultNotFoundError(error)) {
+      return createErrorResponse(
+        'Vault not configured',
+        error?.message ?? 'No vault configured or specified vault not found',
+        'VAULT_NOT_FOUND',
+        'Configure a vault in settings or pass a valid vault name.'
+      );
+    }
     return createErrorResponse(
       'Failed to manage tags',
       error?.message ?? String(error),
@@ -280,6 +297,14 @@ export async function handleArchiveNote(
       structuredContent: payload as Record<string, unknown>,
     };
   } catch (error: any) {
+    if (isVaultNotFoundError(error)) {
+      return createErrorResponse(
+        'Vault not configured',
+        error?.message ?? 'No vault configured or specified vault not found',
+        'VAULT_NOT_FOUND',
+        'Configure a vault in settings or pass a valid vault name.'
+      );
+    }
     return createErrorResponse(
       'Failed to archive note',
       error?.message ?? String(error),
@@ -339,8 +364,10 @@ export async function handleExtractLinks(
       .map(w => ({ target: w.target, alias: w.alias, section: w.section }));
 
     // Extract markdown links line-by-line with line numbers
-    const MARKDOWN_LINK_RE = /\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g;
-    const BARE_URL_RE = /(?<!\()(https?:\/\/[^\s)"'<>]+)/g;
+    // Accept internal parenthesized URL segments (e.g., Wikipedia style URLs).
+    const MARKDOWN_LINK_RE = /\[([^\]]*)\]\((https?:\/\/(?:[^\s()]+|\((?:[^\s()]+|\([^()]*\))*\))+)\)/g;
+    // Avoid matching inside markdown link parentheses; trailing punctuation is handled below.
+    const BARE_URL_RE = /(?<!\()(https?:\/\/[^\s"'<>]*[^\s"'<>.,;:!?])/g;
 
     const markdownLinks: Array<{ text: string; url: string; line: number }> = [];
     const externalUrls: Array<{ url: string; line: number }> = [];
@@ -366,11 +393,27 @@ export async function handleExtractLinks(
       BARE_URL_RE.lastIndex = 0;
       let urlMatch: RegExpExecArray | null;
       while ((urlMatch = BARE_URL_RE.exec(line)) !== null) {
-        const url = urlMatch[1];
+        let url = urlMatch[1];
+        while (url.length > 0) {
+          const lastChar = url[url.length - 1];
+          if (/[.,;:!?]/.test(lastChar)) {
+            url = url.slice(0, -1);
+            continue;
+          }
+          if (lastChar === ')') {
+            const openCount = (url.match(/\(/g) ?? []).length;
+            const closeCount = (url.match(/\)/g) ?? []).length;
+            if (closeCount > openCount) {
+              url = url.slice(0, -1);
+              continue;
+            }
+          }
+          break;
+        }
         const urlStart = urlMatch.index;
         const urlEnd = urlStart + url.length;
         const insideMarkdownSpan = mdSpans.some(span => urlStart >= span.start && urlEnd <= span.end);
-        if (!insideMarkdownSpan) {
+        if (!insideMarkdownSpan && url) {
           externalUrls.push({ url, line: lineNum });
         }
       }
@@ -403,6 +446,14 @@ export async function handleExtractLinks(
       structuredContent: result,
     };
   } catch (error: any) {
+    if (isVaultNotFoundError(error)) {
+      return createErrorResponse(
+        'Vault not configured',
+        error?.message ?? 'No vault configured or specified vault not found',
+        'VAULT_NOT_FOUND',
+        'Configure a vault in settings or pass a valid vault name.'
+      );
+    }
     return createErrorResponse(
       'Failed to extract links',
       error?.message ?? String(error),
@@ -529,6 +580,14 @@ export async function handleGetWeeklyNote(
       structuredContent: payload as Record<string, unknown>,
     };
   } catch (error: any) {
+    if (isVaultNotFoundError(error)) {
+      return createErrorResponse(
+        'Vault not configured',
+        error?.message ?? 'No vault configured or specified vault not found',
+        'VAULT_NOT_FOUND',
+        'Configure a vault in settings or pass a valid vault name.'
+      );
+    }
     return createErrorResponse(
       'Failed to get weekly note',
       error?.message ?? String(error),
@@ -591,6 +650,14 @@ export async function handleListTemplates(
       structuredContent: payload,
     };
   } catch (error: any) {
+    if (isVaultNotFoundError(error)) {
+      return createErrorResponse(
+        'Vault not configured',
+        error?.message ?? 'No vault configured or specified vault not found',
+        'VAULT_NOT_FOUND',
+        'Configure a vault in settings or pass a valid vault name.'
+      );
+    }
     return createErrorResponse(
       'Failed to list templates',
       error?.message ?? String(error),

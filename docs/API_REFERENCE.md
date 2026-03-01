@@ -721,7 +721,7 @@ List available template notes in the vault's configured templates folder. Return
 **Output:**
 ```typescript
 {
-  templates: Array<{ path: string; name: string }>;
+  templates: Array<{ path: string; name: string; folder: string }>;
   total: number;
   template_folder: string;
   note?: string;  // Info message when folder was not found

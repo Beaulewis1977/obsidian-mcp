@@ -298,6 +298,55 @@ describe('handleExtractLinks', () => {
     expect(payload.external_urls[0].url).toBe('https://example.com');
   });
 
+  it('captures markdown links with internal parentheses in URL', async () => {
+    const config = makeMockConfig();
+    const content = 'See [song](https://en.wikipedia.org/wiki/Title_(song)) for details.';
+
+    mockNoteExists.mockResolvedValue(true);
+    mockReadNote.mockResolvedValue(makeNote({ content }));
+    mockParseWikilinks.mockReturnValue([]);
+
+    const result = await handleExtractLinks(config, { path: 'note.md' });
+
+    expect(result.isError).toBeUndefined();
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.markdown_links).toHaveLength(1);
+    expect(payload.markdown_links[0].url).toBe('https://en.wikipedia.org/wiki/Title_(song)');
+  });
+
+  it('captures markdown links with nested parentheses in URL', async () => {
+    const config = makeMockConfig();
+    const content = 'See [nested](https://example.com/a_(b_(c))) now.';
+
+    mockNoteExists.mockResolvedValue(true);
+    mockReadNote.mockResolvedValue(makeNote({ content }));
+    mockParseWikilinks.mockReturnValue([]);
+
+    const result = await handleExtractLinks(config, { path: 'note.md' });
+
+    expect(result.isError).toBeUndefined();
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.markdown_links).toHaveLength(1);
+    expect(payload.markdown_links[0].url).toBe('https://example.com/a_(b_(c))');
+  });
+
+  it('trims trailing punctuation from bare URLs but keeps balanced parentheses', async () => {
+    const config = makeMockConfig();
+    const content = 'Visit https://example.com). Also see https://en.wikipedia.org/wiki/Title_(song).';
+
+    mockNoteExists.mockResolvedValue(true);
+    mockReadNote.mockResolvedValue(makeNote({ content }));
+    mockParseWikilinks.mockReturnValue([]);
+
+    const result = await handleExtractLinks(config, { path: 'note.md' });
+
+    expect(result.isError).toBeUndefined();
+    const payload = JSON.parse(result.content[0].text as string);
+    expect(payload.external_urls).toHaveLength(2);
+    expect(payload.external_urls[0].url).toBe('https://example.com');
+    expect(payload.external_urls[1].url).toBe('https://en.wikipedia.org/wiki/Title_(song)');
+  });
+
   it('returns isError=true when note does not exist', async () => {
     const config = makeMockConfig();
     mockNoteExists.mockResolvedValue(false);
@@ -434,6 +483,20 @@ describe('handleListTemplates', () => {
     expect(payload.total).toBe(0);
     expect(payload.templates).toHaveLength(0);
     expect(payload.note).toContain("templates");
+  });
+
+  it('returns VAULT_NOT_FOUND when no vault is configured', async () => {
+    const config = {
+      version: '1.0',
+      vaults: [],
+      rate_limiting: { enabled: false },
+    } as any;
+
+    const result = await handleListTemplates(config, { template_folder: 'templates' });
+
+    expect(result.isError).toBe(true);
+    const text = result.content[0].text as string;
+    expect(text).toContain('VAULT_NOT_FOUND');
   });
 });
 
